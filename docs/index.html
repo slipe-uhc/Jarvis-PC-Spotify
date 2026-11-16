@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jarvis</title>
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#000;--tx:#f2f2f2;--mut:#8a8a8a;--ac:#fff;--ac2:#cfcfcf;--gl:rgba(255,255,255,.05);--bd:rgba(255,255,255,.12);--ok:#e8e8e8;--warn:#d6d6d6;--bad:#9a9a9a;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;padding:env(safe-area-inset-top,0) max(14px,env(safe-area-inset-right,0)) 0 max(14px,env(safe-area-inset-left,0))}
+.orbs{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.orbs i{position:absolute;border-radius:50%;filter:blur(90px);will-change:transform}
+.orbs i:nth-child(1){width:420px;height:420px;background:#fff;right:-140px;top:-160px;opacity:.10;animation:fl1 26s ease-in-out infinite alternate}
+.orbs i:nth-child(2){width:380px;height:380px;background:#bbb;left:-180px;top:40%;opacity:.07;animation:fl2 32s ease-in-out infinite alternate}
+.orbs i:nth-child(3){width:340px;height:340px;background:#fff;right:-120px;bottom:-140px;opacity:.06;animation:fl1 36s ease-in-out infinite alternate-reverse}
+@keyframes fl1{to{transform:translate(-60px,70px) scale(1.15)}}
+@keyframes fl2{to{transform:translate(90px,-50px) scale(1.1)}}
+
+#app{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:12px 0 110px}
+header{position:sticky;top:max(6px,env(safe-area-inset-top,0));z-index:30;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;background:rgba(8,8,8,.9);border:1px solid var(--bd);border-radius:18px;padding:10px 16px;backdrop-filter:blur(30px) saturate(120%);-webkit-backdrop-filter:blur(30px) saturate(120%)}
+.brand{font:500 11px ui-monospace,"JetBrains Mono",Consolas,monospace;letter-spacing:.3em;color:var(--mut)}
+.date{font-size:17px;font-weight:600;margin-top:2px;letter-spacing:-.01em}.date::first-letter{text-transform:uppercase}
+.lv{text-align:right;min-width:120px}.lv b{font-size:13px;color:var(--ac)}
+.bar{height:3px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:#fff;border-radius:9px;transition:width .4s}
+.small{font-size:12px;color:var(--mut)}
+.modes{display:flex;gap:6px;margin:12px 0 8px;flex-wrap:wrap}
+button{font:inherit;color:var(--tx);cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:12px;background:#fff;border:1px solid #fff;color:#000;text-decoration:none;font-size:14px;font-weight:500;transition:.15s}
+.mode{padding:6px 12px;border-radius:99px;background:var(--gl);border:1px solid var(--bd);font-size:13px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.mode.on{border-color:#fff;color:#000;background:#fff}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+nav#tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0)) calc(6px + env(safe-area-inset-bottom,0)) max(8px,env(safe-area-inset-left,0));background:rgba(8,8,8,.6);border-top:1px solid var(--bd);backdrop-filter:blur(34px) saturate(120%);-webkit-backdrop-filter:blur(34px) saturate(120%)}
+nav#tabs button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;color:var(--mut);font-size:11px;border-radius:12px}
+nav#tabs button.on{color:#fff;background:rgba(255,255,255,.09)}
+.card{background:rgba(255,255,255,.045);border:1px solid var(--bd);border-radius:18px;padding:16px;margin-bottom:12px;backdrop-filter:blur(30px) saturate(120%);-webkit-backdrop-filter:blur(30px) saturate(120%);animation:rise .35s both}
+.card h3{margin:0 0 12px;font:500 11px ui-monospace,"JetBrains Mono",Consolas,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.hero .big{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.wat{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:12px;border-radius:18px;background:rgba(255,255,255,.045);border:1px solid var(--bd);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+.wat .wi{color:#fff}.wat .wb{flex:1;min-width:0}.wat .wb b{font-size:14px}
+.wat .bar{height:6px;margin-top:5px}
+.wat button{width:36px;height:36px;border-radius:12px;background:#fff;border:0;color:#000;font-size:20px;line-height:1}
+.wat button.m{width:30px;height:30px;font-size:16px;background:var(--gl);border-color:var(--bd);color:var(--mut)}
+.row{display:flex;gap:10px;align-items:flex-start;padding:9px 4px;border-radius:12px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:background .2s}
+.row+.row{border-top:1px solid rgba(255,255,255,.06)}
+.row:hover{background:rgba(255,255,255,.04)}
+.row.cur{background:rgba(255,255,255,.07);outline:1px solid rgba(255,255,255,.2)}
+.row.dn .tt{opacity:.45;text-decoration:line-through}
+.ck{flex:none;width:34px;height:34px;margin:-6px -4px -6px -6px;background:none;border:0;display:grid;place-items:center;padding:0}
+.ck span{width:22px;height:22px;border-radius:7px;border:1.5px solid rgba(255,255,255,.4);display:grid;place-items:center;color:#000;transition:.2s}
+.dn .ck span{background:#fff;border-color:#fff}
+.ck svg{width:14px;height:14px;stroke-width:3}
+.tm{flex:none;width:44px;color:var(--mut);font:13px ui-monospace,"JetBrains Mono",Consolas,monospace;padding-top:2px}
+.tb{min-width:0;flex:1}
+.tt{font-weight:500}
+.dt{font-size:13px;color:var(--mut)}
+.chev{flex:none;color:var(--mut);transition:.2s;margin-top:2px}
+.row.open .chev{transform:rotate(180deg)}
+.xp{display:none;margin-top:8px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);cursor:default;user-select:text;-webkit-user-select:text}
+.row.open .xp{display:block}
+.xp .mt{font-size:13px;color:var(--tx);white-space:pre-wrap;margin-top:6px}
+.tag{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);border:1px solid var(--bd);border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+.seg{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;padding:7px 8px;border-radius:10px;background:var(--gl);border:1px solid var(--bd);font-size:12px;color:var(--mut)}
+.seg button.on{background:#fff;border-color:#fff;color:#000}
+.miss{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:14px}
+.miss.ok{color:var(--mut);text-decoration:line-through}
+
+.btn.ghost{background:rgba(255,255,255,.06);border-color:var(--bd);color:var(--tx);font-weight:400}
+.btn.red{color:#bbb;border-color:rgba(255,255,255,.2);background:transparent;font-weight:400}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:10px}
+.btn:active,.chip:active,.mode:active{transform:scale(.96)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ex .exh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ex .exh span{color:var(--mut);font-size:13px;white-space:nowrap}
+.inp{display:flex;gap:10px;margin:10px 0}
+.inp label{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
+input,textarea,select{font:inherit;color:var(--tx);background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;max-width:100%}
+.inp input{width:74px}
+textarea{width:100%;min-height:150px;font-size:13px}
+input[type=range]{padding:0;width:100%;accent-color:#fff;background:none;border:0}
+.sets{display:flex;gap:8px;flex-wrap:wrap}
+.chip{width:42px;height:42px;border-radius:12px;background:var(--gl);border:1px solid var(--bd);font:15px ui-monospace,Consolas,monospace}
+.chip.on{background:#fff;color:#000;border-color:#fff;font-weight:600}
+.rest{position:sticky;top:76px;z-index:5;display:none;justify-content:space-between;align-items:center;background:rgba(12,12,12,.75);border:1px solid #fff;border-radius:14px;padding:10px 14px;margin-bottom:12px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.rest b{font:22px ui-monospace,Consolas,monospace;color:#fff}
+.pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.pill{flex:none;min-width:58px;padding:8px 6px;border-radius:12px;background:var(--gl);border:1px solid var(--bd);text-align:center;font-size:12px}
+.pill.on{border-color:#fff;color:#000;background:#fff}.pill.on .pc{color:#333}
+.pill .pc{font-size:11px;color:var(--mut)}
+.mic{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;border-radius:16px;font-size:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.35);color:#fff}
+.mic.on{background:#fff;color:#000;font-weight:600;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.4)}50%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow:auto;padding:2px}
+.b{max-width:88%;padding:9px 12px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-wrap:break-word;animation:rise .2s both}
+.b.me{align-self:flex-end;background:#fff;color:#000;border:1px solid #fff}
+.b.ja{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid var(--bd)}
+.b.sys{align-self:center;font-size:12px;color:var(--mut);background:none}
+.typing{color:var(--mut);font-size:13px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px}
+.chips button{flex:none;padding:6px 10px;border-radius:99px;background:var(--gl);border:1px solid var(--bd);font-size:12px;color:var(--mut)}
+form.cmd{display:flex;gap:8px;margin-top:8px}
+form.cmd input{flex:1;min-width:0}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0}
+.tg{flex:none;width:46px;height:26px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid var(--bd);position:relative}
+.tg::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--tx);transition:.2s}
+.tg.on{background:#fff;border-color:#fff}
+.tg.on::after{left:22px;background:#000}
+ul.l{margin:6px 0;padding-left:18px;color:var(--mut);font-size:13px}
+ul.l li{margin:3px 0}
+code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;font-size:12px}
+.dg{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;font-size:14px;border-top:1px solid rgba(255,255,255,.06)}
+.dg:first-of-type{border-top:0}
+.ok{color:#fff}.no{color:#8a8a8a}
+.gh{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.gh b{font-size:16px}
+.gb{display:none;margin-top:10px}
+.gc.open .gb{display:block}
+.gc.open .chev{transform:rotate(180deg)}
+.gb h4{margin:14px 0 4px;font:500 11px ui-monospace,Consolas,monospace;color:var(--mut);letter-spacing:.14em;text-transform:uppercase}
+.gb p{margin:4px 0;font-size:14px;white-space:pre-wrap}
+.gb ul{margin:4px 0;padding-left:18px;font-size:14px;color:var(--tx)}
+.gb li{margin:3px 0}
+#sheet{position:fixed;inset:0;z-index:60;display:none}
+#sheet.on{display:block}
+.sbg{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(8px)}
+.sbox{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:720px;height:78vh;display:flex;flex-direction:column;padding:14px 14px calc(12px + env(safe-area-inset-bottom,0));border-radius:22px 22px 0 0;background:rgba(10,10,10,.72);border:1px solid var(--bd);backdrop-filter:blur(40px) saturate(120%);-webkit-backdrop-filter:blur(40px) saturate(120%);box-shadow:0 -10px 50px rgba(0,0,0,.6);animation:up .25s both}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.sh b{font-size:15px}.sh .small{display:block}
+.sbox .chat{flex:1;max-height:none}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0));transform:translateX(-50%) translateY(30px);opacity:0;transition:.3s;background:rgba(18,18,18,.92);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:10px 16px;max-width:90vw;font-size:14px;z-index:70;pointer-events:none;backdrop-filter:blur(14px)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(prefers-reduced-motion:reduce){.orbs i,.card,.b{animation:none}}
+@media(min-width:900px){
+  #app{max-width:1120px;display:grid;grid-template-columns:230px 1fr;grid-template-rows:auto auto 1fr;column-gap:18px;align-items:start;padding-bottom:40px}
+  header{grid-column:1/-1}
+  #modes{grid-column:1;flex-direction:column;margin:14px 0 6px}
+  #modes .mode{text-align:left;border-radius:12px}
+  nav#tabs{position:static;grid-column:1;flex-direction:column;justify-content:flex-start;padding:0;background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;gap:4px}
+  nav#tabs button{flex-direction:row;gap:10px;justify-content:flex-start;padding:12px 14px;font-size:15px;border:1px solid transparent}
+  nav#tabs button.on{border-color:var(--bd)}
+  #view{grid-column:2;grid-row:2/span 2;margin-top:14px}
+  #toast{bottom:24px}
+  .sbox{height:72vh;border-radius:22px;bottom:4vh}
+  .rest{top:84px}
+}
+
+.wat button.bt{width:auto;padding:0 12px;font-size:13px;font-weight:600}
+.btn.sm{padding:6px 11px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="orbs"><i></i><i></i><i></i></div>
+<div id="app">
+  <header>
+    <div><div class="brand">JARVIS <span id="clk"></span></div><div class="date" id="date"></div></div>
+    <div class="lv" id="lv"></div>
+  </header>
+  <div class="modes" id="modes"></div>
+  <nav id="tabs"></nav>
+  <main id="view"></main>
+</div>
+<div id="sheet"><div class="sbg" data-a="sheetclose"></div><div class="sbox" id="sbox"></div></div>
+<div id="toast"></div>
+<script>
+'use strict';
+var NATIVE=window.Android||null;
+var DESK=window.Desktop||null;
+/* ========= utilidades ========= */
+var DN=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+var $=function(s){return document.querySelector(s)};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+function slug(s){return norm(s).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,24)}
+function pad(n){return String(n).padStart(2,'0')}
+function dstr(d){d=d||new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function dayIdx(d){d=d||new Date();return (d.getDay()+6)%7}
+function mm(t){var p=t.split(':');return (+p[0])*60+(+p[1]||0)}
+function nowT(){var n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes())}
+function cmpT(a,b){return a.t<b.t?-1:a.t>b.t?1:0}
+var IC={
+ check:'<svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+ chev:'<svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+ mic:'<svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>',
+ play:'<svg class="i" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>',
+ drop:'<svg class="i" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/></svg>',
+ chat:'<svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+ today:'<svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+ gym:'<svg class="i" viewBox="0 0 24 24"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>',
+ week:'<svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+ book:'<svg class="i" viewBox="0 0 24 24"><path d="M5 4h10a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h10"/></svg>',
+ jarvis:'<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>',
+ gear:'<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>'
+};
+
+/* ========= rotina padrão ========= */
+function mk(di,line){
+  var p=line.split('|'),fl=(p[3]||'').split(',').filter(Boolean);
+  var o={t:p[0],title:p[1],d:p[2]||'',imp:false,snd:false,w:'',c:'',u:''};
+  fl.forEach(function(f){if(f==='i')o.imp=true;else if(f==='s')o.snd=true;else if(f.indexOf('w=')===0)o.w=f.slice(2);else if(f.indexOf('c=')===0)o.c=f.slice(2);else if(f.indexOf('u=')===0)o.u=f.slice(2)});
+  if(o.w){o.imp=true;o.snd=true;o.c='train'}
+  o.id='d'+di+'_'+p[0].replace(':','')+'_'+slug(p[1]);
+  return o;
+}
+var AM=["05:30|Acordar e escovar os dentes|Luz fraca, sem barulho|c=rest","05:35|Anki 10 min|Fone, volume baixo|c=en","05:45|Shadowing 5 min|Sussurrando|c=en","05:50|Café da manhã|Opção A ou B|i,c=food","06:10|Rosto + protetor solar|Lavar, hidratar, protetor|c=skin"];
+var LANCHE="09:30|Lanche da escola|Opção A ou B|c=food";
+var ALM="12:30|Almoço|Arroz, feijão, proteína, salada|i,c=food";
+var LAN2="16:00|Lanche da tarde|Opção A ou B|c=food";
+var PRE="17:30|Pré-treino|Banana + pão com mel (ou batata)|c=food";
+var ESC="06:20|Sair para a escola|Fone, mochila, garrafa|c=rest";
+function JANTA(t,d){return t+"|Janta|"+(d||"Prato cheio com proteína")+"|i,c=food"}
+function ING(t,d){return t+"|Inglês da noite|"+(d||"Diário (3 frases) + áudio 5 min")+"|i,c=en"}
+function CEIA(t){return t+"|Ceia|Leite ou iogurte + algo leve|c=food"}
+function SKIN(t){return t+"|Rosto da noite|Lavar, hidratante, lábios|c=skin"}
+function PREP(t){return t+"|Preparar o amanhã sem barulho|Mochila, roupa, garrafa|c=rest"}
+function SLEEP(t){return t+"|Dormir|Celular longe, luz apagada|i,s,c=sleep"}
+function ABS(t){return t+"|Abdômen + jawline (20 min)|Prancha, elevação de pernas, mewing|c=train"}
+function POST(t){return t+"|Postura|Alongar peitoral 3×30s + queixo pra trás 2×15|c=train"}
+var BUILD=[
+ /* Segunda */ AM.concat([ESC,LANCHE,ALM,"13:10|Música (clarinete)|Aula / estudo|i,c=study",LAN2,PRE,"17:40|Gramática no ônibus|Anki ou podcast curto|c=en","18:45|Treino: Empurrar A|Ombro, peito, tríceps|w=push_a",POST("19:45"),"20:00|Banho|Clear + Escala|c=skin",JANTA("20:15"),ING("20:40"),CEIA("21:00"),SKIN("21:10"),PREP("21:15"),SLEEP("21:30")]),
+ /* Terça */ AM.concat(["06:15|Cabelo só com água|Sem shampoo hoje|c=skin",ESC,LANCHE,ALM,"13:00|Lazer: jogar 40 min|Merecido, com fone|c=game","13:50|Música (clarinete)|Aula / estudo|i,c=study",LAN2,"18:00|Escuta no ônibus|Dexter ou podcast em inglês|c=en",ABS("19:30"),"19:50|Banho|Só água no cabelo|c=skin",JANTA("20:00"),ING("20:25"),"20:40|Assistir 20 min em inglês|Série, vídeo ou stream|c=en,u=en",CEIA("21:00"),SKIN("21:10"),PREP("21:15"),SLEEP("21:30")]),
+ /* Quarta */ AM.concat([ESC,LANCHE,ALM,"13:10|Música (clarinete)|Aula / estudo|i,c=study",LAN2,PRE,"17:40|Pronúncia (Rachel's English)|10 min|c=en","18:40|Treino: Puxar A|Costas, bíceps, antebraço|w=pull_a","19:45|Banho|Seda + Novex|c=skin",JANTA("19:55","Janta rápida"),"20:00|Reforço online|Aula online|i,c=study",CEIA("21:00"),"21:10|Inglês curto|Diário 3 frases|i,c=en",SKIN("21:20"),PREP("21:30"),SLEEP("21:45")]),
+ /* Quinta */ AM.concat([ESC,LANCHE,ALM,"14:00|Edição (1h30)|Cortes / trabalho|i,c=work","15:30|Estudos de recuperação|Matemática primeiro|i,c=study",LAN2,"16:30|Call no Discord|Equipe / trabalho|c=work","17:00|Postar|Publicar o conteúdo do dia|c=work",PRE,"18:00|Treino: Pernas|Quadríceps, posterior, panturrilha|w=legs","19:30|Banho|Só água no cabelo|c=skin",JANTA("19:45"),ABS("20:15"),"20:30|Lazer: jogar 30 min|Com fone|c=game",ING("21:00"),CEIA("21:20"),SKIN("21:30"),PREP("21:35"),SLEEP("21:45")]),
+ /* Sexta */ AM.concat([ESC,LANCHE,ALM,"13:45|Edição (1h15)|Cortes / trabalho|i,c=work","15:00|Reforço em casa|Estudo de recuperação|i,c=study",LAN2,"16:30|Escuta em inglês|Podcast ou vídeo|c=en,u=none","17:00|Postar|Publicar o conteúdo do dia|c=work",PRE,"18:00|Treino: Empurrar B|Ombro, peito, tríceps|w=push_b","19:30|Banho|Clear + Escala|c=skin",JANTA("19:45"),ABS("20:15"),"20:30|Lazer: jogar 1h|Com fone|c=game",ING("21:40"),CEIA("21:55"),SKIN("22:05"),PREP("22:10"),SLEEP("22:20")]),
+ /* Sábado: manhã livre (lazer), edição só à noite */ ["06:00|Acordar e escovar os dentes|Sem barulho|c=rest","06:10|Anki 10 min|Fone, volume baixo|c=en","06:30|Lazer quieto (1h)|Jogar com fone, sem barulho|c=game","07:45|Pré-treino|Banana + pão com mel (ou batata)|c=food","08:30|Treino: Puxar B|Costas, bíceps, antebraço|w=pull_b",ABS("09:45"),"10:05|Banho|Só água no cabelo|c=skin","10:15|Lanche|Pós-treino: proteína + carbo|c=food","10:30|Lazer: jogar (1h30)|Manhã livre, sem estudo|c=game",ALM.replace("12:30","12:00"),"13:10|Curso de inglês|Conta como inglês principal (até 17:00)|i,c=en","17:50|Chegar em casa|Descansar um pouco|c=rest",JANTA("18:00"),ING("18:30","Diário + áudio"),"18:45|Edição leve (45 min)|Só o essencial|c=work","19:30|Lazer: jogar 1h|Fim de semana|c=game","20:30|Assistir 30 min em inglês|Episódio ou vídeo|c=en,u=none",CEIA("21:00"),SKIN("21:15"),PREP("21:30"),SLEEP("22:00")],
+ /* Domingo: manhã de lazer; estudo e edição à tarde */ ["05:30|Pesar em jejum|Anotar o peso|i,c=rest","05:35|Anki 10 min|Fone, volume baixo|c=en","06:00|Café da manhã|Opção A ou B|i,c=food","06:30|Lazer quieto (1h)|Jogar com fone, sem barulho|c=game","07:30|Assistir 1 episódio em inglês|Dexter ou outra série|c=en,u=en","08:15|Lazer: jogar (2h)|Manhã livre, PC liberado|c=game","10:15|Lanche|Fruta + proteína|c=food","10:30|Lazer livre|Jogar, sair, descansar|c=game",ALM,"13:30|Inglês principal|Revisão + teste + gravar 3 min falando|i,c=en","14:30|Estudos (1h)|Matéria que está mais fraca|i,c=study","15:30|Edição (1h)|Lote da semana|i,c=work","16:30|Planejar a semana|Rever agenda e metas|c=work","16:40|Mensal (1º domingo)|Fotos, medidas, teste de inglês|c=rest","16:50|Cuidados da semana|Fronha, unhas, cavanhaque, separar 3 looks|c=skin","17:05|Compras|Mercado e itens da rotina|c=rest",PRE,"18:00|Treino: Ombro, braço e mão|Ombro 3D + braço + antebraço|w=shoulder","19:30|Banho|Seda + Escala|c=skin","19:40|Revisão de dieta e treino|Ajustar a semana|c=work",JANTA("19:50"),ABS("20:15"),"20:30|Lazer: jogar ou call|Com fone|c=game",CEIA("21:30"),SKIN("21:40"),PREP("21:45"),SLEEP("22:00")]
+];
+var WK={
+ push_a:{name:'Empurrar A',ex:[['Aquecimento (mobilidade, 5 min)',1,'5 min'],['Desenvolvimento com barra em pé',4,'6–10'],['Flexão com pés na cama + mochila/anilha',4,'8–12'],['Pike push-up',3,'8–12'],['Elevação lateral com anilha',4,'12–20'],['Mergulho entre duas cadeiras',3,'falha−1'],['Tríceps testa no chão com barra',3,'10–12'],['Pescoço (isometria, 5 min)',1,'5 min']]},
+ pull_a:{name:'Puxar A',ex:[['Barra fixa pegada aberta',4,'8–12'],['Remada curvada com barra',4,'8–12'],['Barra fixa supinada',3,'máx'],['Rosca direta com barra',3,'8–12'],['Rosca inversa com barra',3,'12–15'],['Crucifixo inverso com anilha',3,'15'],['Encolhimento com barra',3,'15'],['Superman no chão',3,'12'],['Bloco de mão (antebraço, 5 min)',1,'5 min']]},
+ legs:{name:'Pernas',ex:[['Agachamento com barra',4,'8–12'],['Agachamento búlgaro (pé no sofá)',3,'10 cada'],['Terra romeno com barra',3,'10–12'],['Ponte de glúteo com barra',3,'12'],['Panturrilha em pé com barra',4,'15–20'],['Elevação na ponta do pé',3,'20'],['Elevação lateral com anilha',3,'15–20'],['Pescoço (isometria, 5 min)',1,'5 min']]},
+ push_b:{name:'Empurrar B',ex:[['Supino no chão com barra',4,'8–12'],['Flexão declinada (pés na cama)',3,'falha−1'],['Pike com descida de 3 s',3,'8–12'],['Elevação lateral com anilha (drop set)',4,'15–20'],['Elevação frontal com anilha',3,'12'],['Flexão diamante',3,'falha−1'],['Bloco de mão (antebraço, 5 min)',1,'5 min']]},
+ pull_b:{name:'Puxar B',ex:[['Barra fixa com peso (mochila)',4,'6–10'],['Remada curvada pegada supinada',3,'10'],['Crucifixo inverso com anilha',3,'15'],['Rosca inversa descida lenta',3,'10–12'],['Rosca de punho com barra',3,'15–20'],['Encolhimento com barra',3,'15'],['Pescoço + mão (8 min)',1,'8 min']]},
+ shoulder:{name:'Ombro, braço e mão',ex:[['Elevação lateral com anilha',5,'15–20'],['Desenvolvimento com anilha',3,'10–12'],['Rosca direta com barra',3,'10'],['Tríceps na cadeira',3,'falha−1'],['Rosca de punho inversa',3,'15'],['Agachamento leve + panturrilha',3,'15'],['Bloco de mão (antebraço, 5 min)',1,'5 min']]}
+};
+function builtin(){
+  var wk={};
+  Object.keys(WK).forEach(function(k){wk[k]={name:WK[k].name,ex:WK[k].ex.map(function(e){return {n:e[0],s:e[1],r:e[2]}})}});
+  return {id:'padrao',name:'Rotina padrão',days:BUILD.map(function(a,i){return a.map(function(l){return mk(i,l)}).sort(cmpT)}),wk:wk};
+}
+
+/* ========= detalhes de cada item (vem dos chats de dieta, treino, inglês e consultoria) ========= */
+var HAIR=['Clear + creme Escala','Só água','Seda verde + máscara Novex (3 min)','Só água','Clear + creme Escala','Só água','Seda verde + máscara Escala (5 min)'];
+var MEAL={
+ cafe:'Opção A: 3 ovos mexidos + 1 pão francês + 1 banana + 1 copo de leite (200 ml).\nOpção B: 2 ovos cozidos + 1 pão francês + 1 banana + aveia cozida em 1 copo de leite (200 ml).',
+ escola:'Opção A: 1 pão francês com 2 ovos cozidos.\nOpção B: 1 pão francês com pasta de amendoim + 1 banana.\nSe a escola servir merenda, come ela também.',
+ almoco:'Opção A: 8 colheres de arroz + 1 concha de feijão + 150 g de frango ou carne + legumes.\nOpção B: 8 colheres de arroz + 1 concha de feijão + 3 ovos + legumes, ou 2 pegadores de macarrão com 120 g de carne moída.',
+ tarde:'Opção A: 1 iogurte natural (170 g) + 1 banana + aveia (um punhado).\nOpção B: 1 pão francês com 1 ovo e 1 fatia de queijo.',
+ pre:'Opção A: 1 banana + 1 pão francês com mel.\nOpção B: 2 batatas pequenas cozidas + 1 banana.',
+ ceia:'Opção A: 1 copo de leite (200 ml) + 2 fatias de pão de forma com 1 fatia de queijo.\nOpção B: 1 iogurte natural (170 g) + aveia (um punhado) + 1 colher de pasta de amendoim.'
+};
+var MORE=[
+ [/^Acordar/,'Luz fraca e sem barulho: a casa ainda está dormindo. Dentes, água e já vai pro Anki.'],
+ [/^Anki/,'Faça TODAS as revisões primeiro; só depois as 10 cartas novas. Se atrasou, não acumula: revisões antes das novas.\nNas terças e sextas, coloque também as 5 a 8 frases que você minerou da escuta.\nAnki vem antes de qualquer lazer.'],
+ [/^Shadowing/,'Escolha 1 frase de um nativo e repita imitando ritmo, entonação e sotaque, sussurrando.'],
+ [/^Café da manhã/,function(){return MEAL.cafe}],
+ [/^Lanche da escola/,function(){return MEAL.escola}],
+ [/^Almoço/,function(){return MEAL.almoco}],
+ [/^Lanche da tarde/,function(){return MEAL.tarde}],
+ [/^Pré-treino/,function(){return MEAL.pre}],
+ [/^Janta/,function(){return MEAL.almoco}],
+ [/^Ceia/,function(){return MEAL.ceia}],
+ [/^Lanche$/,'Pós-treino: proteína + carboidrato (ex.: pão com ovo e leite, ou iogurte com banana e aveia).'],
+ [/^Rosto \+ protetor/,'Lavar o rosto com sabonete facial gel (ou só água), hidratante leve, protetor FPS 50+ (rosto, orelhas, pescoço) e hidratante labial.\nReaplique o protetor depois do almoço.'],
+ [/^Rosto da noite/,'Dentes + fio, lavar o rosto, hidratante, hidratante labial. Separar a roupa de amanhã.'],
+ [/^Cabelo só com água/,'Hoje o cabelo só pega água, sem shampoo. Massageie o couro cabeludo com a ponta dos dedos.'],
+ [/^Banho/,function(i,di){return 'Cabelo de hoje: '+HAIR[di]+'.\nDepois do treino: lavar o rosto e usar o sabonete de lavanda.'}],
+ [/^Postura/,'Alongar o peitoral 3×30 s e queixo para trás 2×15. Faça uma pausa de postura a cada 50 min sentado.'],
+ [/^Abdômen/,'Prancha, elevação de pernas e jawline/mewing. Fica nos seus apps, fora da ficha de treino.'],
+ [/^Gramática/,'1 tema curto, começando pelos erros que você mais repete no diário, e escrever 10 frases suas usando o tema.'],
+ [/^Pronúncia/,'Rachel\'s English (sotaque americano) + shadowing de um trecho curto.'],
+ [/^Escuta no ônibus/,'Dexter ou podcast em inglês só para ouvir. Imersão do dia, não conta nos 60 min.'],
+ [/^Assistir|^Escuta em inglês/,'Estratégia da escuta intensiva: 3 min sem legenda, depois com legenda em inglês, e minerar 5 a 8 frases para o Anki. Escolha a legenda abaixo.'],
+ [/^Inglês da noite|^Inglês curto/,'Diário em inglês: 5 a 8 frases sobre o dia, sem tradutor, para correção. Gravar 1 min de áudio falando. Depois, colocar no Anki as 3 frases corrigidas.\nModo mínimo (dia ruim): Anki + 1 frase. Nunca zero.'],
+ [/^Curso de inglês/,'Conta como inglês principal do sábado. Anote 3 coisas que não soube dizer para virar card do Anki.'],
+ [/^Inglês principal/,'Revisão da semana, teste de 5 min, gravar 3 min falando de um tema livre e se ouvir.'],
+ [/^Pesar/,'Em jejum, anotar o peso e comparar com a semana passada.\nGanhou menos de 0,2 kg por semana durante 3 semanas: adicione 1 pão com 2 ovos por dia.\nGanhou mais de 0,5 kg por semana: tire 1 lanche.'],
+ [/^Mensal/,'Fotos (frente, lado, costas), pesar, medidas, cortar as laterais do cabelo, teste de inglês (escuta, 150 palavras escritas e 3 min falando) e conferir os produtos.'],
+ [/^Cuidados da semana/,'Trocar a fronha, lavar a camiseta de secar cabelo, cortar as unhas, alinhar o cavanhaque (só o contorno) e separar 3 looks.'],
+ [/^Compras/,'Semana: 3 dúzias de ovos, 2 kg de frango, 1 kg de carne moída, 4 L de leite, 7 iogurtes, 24 pães franceses, 1 pacote de pão de forma, arroz, feijão, macarrão, batata, aveia, 25 bananas, pasta de amendoim, mel e legumes.'],
+ [/^Planejar/,'Rever a agenda da semana, as metas e o que ajustar na dieta e no treino.'],
+ [/^Revisão de dieta/,'Conferir o peso da semana e aplicar as regras de ajuste da dieta. Ver a semana de treino.'],
+ [/^Dormir/,'Celular longe, luz apagada. Meta: 8 horas de sono.'],
+ [/^Lazer/,'Merecido. Anki antes de qualquer lazer, e fone se a casa estiver dormindo.'],
+ [/^Música|^Reforço|^Estudos/,'Foco no que está mais fraco. Matemática primeiro. Celular longe.'],
+ [/^Edição|^Postar/,'Trabalho com os cortes: editar em lote e postar o conteúdo do dia.'],
+ [/^Call no Discord/,'Call com a equipe. Em call de inglês, anote 3 coisas que não soube dizer.']
+];
+function moreFor(i,di){
+  var out='',k;
+  if(i.w){var w=R().wk[i.w];if(w)out+=w.name+':\n'+w.ex.map(function(e){return '• '+e.n+' — '+e.s+' × '+e.r}).join('\n')+'\nParar 1 a 2 repetições antes da falha. Descanso 1:30 a 2 min nos pesados, 60 s nos leves.'}
+  if(!out)for(k=0;k<MORE.length;k++){if(MORE[k][0].test(i.title)){out=typeof MORE[k][1]==='function'?MORE[k][1](i,di):MORE[k][1];break}}
+  return out}
+var SUBS=[['none','Sem legenda'],['en','Legenda em inglês'],['dual','Legenda dupla']];
+
+/* ========= guia (conteúdo dos chats) ========= */
+function treinoBlocks(){
+  var b=[['Regras',['Aquecimento: 5 min de articulações + 1 série leve do 1º exercício.','Intensidade: parar 1 a 2 repetições antes da falha. Falha total só na última série dos exercícios de isolamento (lateral, rosca, tríceps).','Descanso: 1:30 a 2 min nos pesados, 60 s nos leves.','Progressão: quando bater o topo das repetições em todas as séries, aumente o peso ou deixe o exercício mais difícil na semana seguinte.','Anote peso, séries e repetições de todo treino.','Semana leve a cada 4 semanas: metade das séries.','Técnica primeiro: agachamento e desenvolvimento com a barra começam leves.','Dor aguda ou na articulação: pare o exercício.','Pescoço: só isometria com a mão, força média, sem tranco. Formigamento, tontura ou dor: pare na hora.']],
+   ['Divisão da semana',['Segunda: Empurrar A','Terça: folga da ficha (abdômen e alongar)','Quarta: Puxar A','Quinta: Pernas','Sexta: Empurrar B','Sábado: Puxar B','Domingo: Ombro, braço e mão']]];
+  Object.keys(WK).forEach(function(k){b.push([WK[k].name,WK[k].ex.map(function(e){return e[0]+' — '+e[1]+' × '+e[2]})])});
+  b.push(['Metas',['Peso: 58 kg para 70 kg até 01/01/2028, com o shape da foto de referência.','Treinar 6 dias por semana (terça folga).','Pendurar na barra 45 s.','Marcas de partida: ~50 flexões, ~12 barras, ~15 mergulhos.']]);
+  return b}
+var GUIA=[
+ {id:'dieta',t:'Dieta',s:'3100 kcal · mais de 130 g de proteína',b:function(){return [
+  ['Meta','Ganhar massa com pouca gordura, sem déficit calórico. De 58 kg para 70 kg até 2027, cerca de 0,25 kg por semana (1 kg por mês). Calorias: cerca de 3100 por dia. Proteína: mais de 130 g.'],
+  ['Refeições (sempre A ou B, tudo no fogão)',['05:50 Café — '+MEAL.cafe.replace(/\n/g,' '),'09:30 Lanche da escola — '+MEAL.escola.replace(/\n/g,' '),'13:00 Almoço — '+MEAL.almoco.replace(/\n/g,' '),'16:00 Lanche da tarde — '+MEAL.tarde.replace(/\n/g,' '),'17:30 Pré-treino — '+MEAL.pre.replace(/\n/g,' '),'19:30 Janta pós-treino — igual ao almoço','21:00 Ceia — '+MEAL.ceia.replace(/\n/g,' ')]],
+  ['Água','3 a 4 litros por dia. O app conta em copos de 250 ml e lembra de beber.'],
+  ['Regras',['Ganhou menos de 0,2 kg por semana durante 3 semanas: adiciona 1 pão com 2 ovos por dia.','Ganhou mais de 0,5 kg por semana: tira 1 lanche.','Açúcar: não precisa zerar. Corta refrigerante e fast food. Um doce por semana pode.','Suplemento não é necessário: ovo, leite e frango cobrem a proteína. Sem creatina, pré-treino e termogênico.','Dormir 8 horas.','Pesar todo domingo, em jejum.']],
+  ['Lista de compras da semana',['Ovos: 3 dúzias','Frango (coxa/sobrecoxa): 2 kg','Carne moída: 1 kg','Atum ou sardinha em lata: 4 latas (reserva)','Queijo mussarela fatiado: 300 g','Iogurte natural: 7 potes de 170 g','Leite: 4 litros','Pão francês: 24','Pão de forma: 1 pacote','Arroz: 1,5 kg','Feijão: 1 kg','Macarrão: 500 g','Batata: 1 kg','Aveia: 500 g','Banana: 25 unidades','Pasta de amendoim: 1 pote','Mel: 1 pote pequeno','Legumes e salada: o mais barato']],
+  ['Importante','Ainda está crescendo: não corte comida nem faça déficit. A gordura da barriga é normal para quem tem pouca gordura. Passe uma vez num nutricionista ou pediatra para conferir a dieta e mostre para sua mãe, porque ela compra o mercado.']]}},
+ {id:'treino',t:'Treino',s:'Calistenia + barra com anilhas, 6 dias',b:treinoBlocks},
+ {id:'ingles',t:'Inglês',s:'60 min por dia, fluência real',b:function(){return [
+  ['Meta','Fluência de verdade (C1) com sotaque americano. Falar, ouvir, ler e escrever, nessa ordem de prioridade. Falar e entender bem em 6 a 8 meses; C1 em 12 a 18 meses.'],
+  ['Blocos do dia (60 min)',['Manhã 5:35: Anki 10 min + shadowing 5 min','Tarde (30 min): bloco principal do dia','Noite (15 min): diário de 5 a 8 frases + áudio de 1 min + 3 frases corrigidas no Anki']],
+  ['Bloco principal da tarde',['Segunda: gramática no uso (tema dos seus erros) + 10 frases suas','Terça: escuta intensiva (3 min de Dexter sem legenda, depois com legenda em inglês, minerar 5 a 8 frases)','Quarta: fala (call de Discord com gringos ou Valorant falando inglês)','Quinta: pronúncia (Rachel\'s English) + shadowing','Sexta: escuta intensiva com outro conteúdo (streamer de Valorant ou YouTube tech)','Sábado: call de Discord mais longa','Domingo: revisão, teste de 5 min e gravar 3 min falando']],
+  ['Imersão o dia todo','Celular, PC, TV e jogos em inglês. Só legenda em inglês, nunca em português. Narre o que está fazendo em inglês na cabeça. O que não souber falar vira card do Anki.'],
+  ['Regras',['Modo mínimo (dia ruim): Anki + 1 frase. Nunca zero.','Nunca pular 2 dias seguidos.','Anki antes de qualquer lazer. Se atrasar, não acumula: revisões primeiro, depois as novas.','Primeiros 2 meses: baralho das 3000 palavras mais comuns (AnkiWeb). Depois, cartas de frases do que você ouve.','Fala: semana 1 só shadowing e áudio sozinho; da semana 2 entra em call.']],
+  ['Fases',['Base (semanas 1 a 8): entende ~60% da série sem legenda em PT e fala frases simples sem tradutor','Fluidez (meses 3 a 6): aguenta 10 min de conversa e entende a maior parte de streamers','Avançado (meses 7 a 12): entende série quase toda sem legenda e conversa 30 min sem travar','Lapidação (depois): sotaque, gírias, velocidade de nativo']],
+  ['Mensal','1 clipe de escuta, 150 palavras escritas e 3 min falando. Conversa real: 3 a 4 horas por mês no começo, mais de 8 depois do 3º mês.'],
+  ['Materiais grátis','Anki (PC) e AnkiDroid (celular), baralho das 3000 palavras, Language Reactor (legenda dupla), Rachel\'s English, BBC Learning English, VOA Learning English, servidores de Discord de gringos.']]}},
+ {id:'rosto',t:'Rosto, cabelo e barba',s:'Rotina com os produtos que você já tem',b:function(){return [
+  ['Diagnóstico','Cabelo cacheado, seco, com muita caspa (seu maior ponto forte, precisa de corte e cuidado). Pele mista tendendo a seca, poucas espinhas, cravos no nariz, olheira média. Rosto ainda em crescimento: não julgue nariz e queixo agora.'],
+  ['Manhã','Dentes + fio, lavar o rosto (sabonete facial gel ou só água), hidratante leve, protetor FPS 50+ (rosto, orelhas, pescoço), hidratante labial, cabelo conforme o dia, desodorante.'],
+  ['Durante o dia','Reaplicar o protetor depois do almoço, pausa de postura a cada 50 min, tela na altura dos olhos.'],
+  ['Depois do treino','Lavar o rosto, sabonete de lavanda, cabelo conforme o dia, alongar o peitoral (3×30 s) e queixo para trás (2×15).'],
+  ['Noite (até 21:00)','Dentes + fio, lavar o rosto, hidratante, hidratante labial, separar a roupa e dormir às 21:30.'],
+  ['Cabelo na semana',DN.map(function(d,i){return d+': '+HAIR[i]})],
+  ['Corte','Curly fringe: degradê baixo, topo de 6 a 8 cm, franja pra frente. Laterais a cada 3 a 4 semanas.'],
+  ['Pare de fazer','Puxar a pele embaixo do olho, exercícios de nariz, sabonete de enxofre no rosto todo, lavar o cabelo com shampoo todo dia. Massagem leve com o dedo (1 a 2 min) é opcional.'],
+  ['Cavanhaque','Deixe crescer sem pressa e só alinhe o contorno depois. Raspar não engrossa.'],
+  ['Semanal e mensal','Domingo: trocar a fronha, lavar a camiseta de secar cabelo, cortar as unhas, alinhar o cavanhaque, separar 3 looks. Mensal: cortar as laterais, fotos (frente, lado, costas), pesar e conferir os produtos.']]}},
+ {id:'estilo',t:'Estilo',s:'Clean e discreto, calor de Natal',b:function(){return [
+  ['Cores e tecido','Preto, branco, cinza, azul-marinho, bege e verde-oliva, em tecido leve por causa do calor.'],
+  ['8 peças','3 camisetas lisas, 1 overshirt ou camisa leve, 2 calças ou bermudas retas, 1 tênis branco.'],
+  ['3 looks',['Camiseta branca + bermuda ou calça bege + tênis branco','Camiseta preta + jeans reto escuro + tênis branco','Camiseta cinza + overshirt azul-marinho + calça preta']],
+  ['Perfume','Fresco, por último, 2 a 3 borrifadas.'],
+  ['Ordem de compras',['1. Protetor FPS 50+','2. Corte de cabelo','3. Sabonete facial gel','4. Hidratante facial leve','5. 2 a 3 camisetas lisas','6. Gel ou creme de definição','7. Pente de dentes largos','8. Tênis branco','9. Aparador de barba','10. Perfume']]]}},
+ {id:'estudos',t:'Estudos e agenda',s:'1 a 1,5 h por dia',b:function(){return [
+  ['Agenda real','Escola de manhã, volta ~13h de ônibus. Clarinete segunda e quarta (em casa ~18:30) e terça (em casa ~19:30). Reforço quarta 20h e sexta 15h. Quinta livre. Sábado curso de inglês 13:10 às 17:00. Domingo livre.'],
+  ['Estudos','De 1 a 1,5 h por dia. Matemática primeiro nas recuperações. Celular longe durante o estudo.'],
+  ['Fim de semana','Manhãs livres para jogar e descansar, sem estudar e sem editar muito. Estudo e edição ficam à tarde ou à noite.'],
+  ['Trabalho','Cortes: editar em lotes e postar 15 a 20 por dia.']]}}
+];
+function guiaBlocks(g){return typeof g.b==='function'?g.b():g.b}
+function kbText(){
+  return GUIA.map(function(g){return '## '+g.t+'\n'+guiaBlocks(g).map(function(x){return x[0]+': '+(Array.isArray(x[1])?x[1].join(' | '):x[1])}).join('\n')}).join('\n\n')}
+var SITES={github:'https://github.com',youtube:'https://www.youtube.com',spotify:'https://open.spotify.com',instagram:'https://www.instagram.com',tiktok:'https://www.tiktok.com',whatsapp:'https://web.whatsapp.com',discord:'https://discord.com/app',gmail:'https://mail.google.com',drive:'https://drive.google.com',netflix:'https://www.netflix.com',twitter:'https://x.com',x:'https://x.com',chatgpt:'https://chatgpt.com',claude:'https://claude.ai',google:'https://www.google.com',maps:'https://maps.google.com',canva:'https://www.canva.com',capcut:'https://www.capcut.com',anki:'https://ankiweb.net',tradutor:'https://translate.google.com',twitch:'https://www.twitch.tv',reddit:'https://www.reddit.com',behance:'https://www.behance.net'};
+
+/* ========= estado ========= */
+function load(){try{var v=localStorage.getItem('jarvis_v1');return v?JSON.parse(v):null}catch(e){return null}}
+var S=load();
+if(!S||typeof S!=='object')S={};
+(function(){
+  var d={rs:[],cur:'padrao',done:{},logs:{},mode:'normal',notif:true,sound:true,voice:false,ear:'ambos',notified:{},tab:'hoje',wsel:null,wkSel:null,
+    ai:{key:'',model:'gemini-flash-latest'},tts:{rate:1.3,pitch:1,name:'',engine:'auto'},wat:{goal:16,every:90,on:true},
+    water:{},wlast:0,ov:{},sub:{},chatFree:[],speakTyped:false};
+  for(var k in d)if(S[k]===undefined)S[k]=d[k];
+  ['ai','tts','wat'].forEach(function(k){for(var j in d[k])if(S[k][j]===undefined)S[k][j]=d[k][j]});
+  var keep=dstr(),ks=Object.keys(S.ov);ks.forEach(function(x){if(x<keep)delete S.ov[x]});
+})();
+function save(){try{localStorage.setItem('jarvis_v1',JSON.stringify(S))}catch(e){}syncNative()}
+var syncT=0;
+function syncNative(){if(!NATIVE)return;clearTimeout(syncT);syncT=setTimeout(function(){try{
+  var days=R().days.slice(),a=dayIdx(),b=(a+1)%7;days[a]=items(a);days[b]=items(b);
+  NATIVE.sync(JSON.stringify({days:days,done:S.done,sound:S.sound,notif:S.notif,water:S.wat}))}catch(e){}},300)}
+function routines(){return [builtin()].concat(S.rs)}
+function R(){return routines().find(function(r){return r.id===S.cur})||routines()[0]}
+/* ajustes de hoje e de amanhã (adiar, pular, adicionar) */
+function dateFor(di){var t=dayIdx();if(di===t)return dstr();if(di===(t+1)%7){var d=new Date();d.setDate(d.getDate()+1);return dstr(d)}return null}
+function ovGet(date,make){var o=S.ov[date];if(!o&&make)o=S.ov[date]={move:{},skip:{},add:[]};return o}
+function items(di){
+  di=di==null?dayIdx():di;
+  var base=R().days[di]||[],dt=dateFor(di),o=dt&&S.ov[dt];
+  if(!o)return base;
+  var out=base.filter(function(i){return !(o.skip&&o.skip[i.id])}).map(function(i){return (o.move&&o.move[i.id])?Object.assign({},i,{t:o.move[i.id]}):i});
+  if(o.add&&o.add.length)out=out.concat(o.add);
+  return out.sort(cmpT)}
+function findItem(id){var r=R(),di,k,a;
+  for(di=0;di<7;di++){a=items(di);for(k=0;k<a.length;k++)if(a[k].id===id)return {i:a[k],di:di}}
+  return null}
+function doneToday(){return S.done[dstr()]||{}}
+
+/* ========= água ========= */
+function waterN(){return S.water[dstr()]||0}
+function addWater(n){
+  var k=dstr();S.water[k]=Math.max(0,(S.water[k]||0)+n);
+  pubRaw({type:'water',date:k,n:S.water[k]});
+  if(NATIVE){try{NATIVE.setWater(k,S.water[k])}catch(e){}}
+  save();render()}
+function waterHtml(){
+  var n=waterN(),g=S.wat.goal||16,p=Math.min(100,Math.round(100*n/g));
+  return '<div class="wat"><span class="wi">'+IC.drop+'</span><div class="wb"><b>Água · '+n+' de '+g+' copos</b> <span class="small">('+(n*0.25).toFixed(2).replace('.',',')+' L)</span><div class="bar"><i style="width:'+p+'%"></i></div></div><button class="m" data-a="wat" data-v="-1" aria-label="menos um copo">−</button><button data-a="wat" data-v="1" aria-label="mais um copo">+</button><button class="bt" data-a="wat" data-v="bottle" aria-label="mais uma garrafa">Garrafa</button></div>'}
+
+/* ========= XP, missões ========= */
+function totalXP(){var x=0,k,i,e;
+  for(k in S.done)for(i in S.done[k])x+=S.done[k][i];
+  for(k in S.logs)for(e in S.logs[k])S.logs[k][e].forEach(function(s){if(s)x+=3});
+  return x}
+function missions(){
+  var it=items(),d=doneToday(),imp=it.filter(function(i){return i.imp}),di=imp.filter(function(i){return d[i.id]}).length,m=[];
+  m.push({t:'Cumprir 80% dos itens principais',ok:imp.length>0&&di/imp.length>=.8,p:di+'/'+imp.length});
+  var w=it.filter(function(i){return i.w});
+  if(w.length)m.push({t:'Fazer o treino do dia',ok:w.every(function(i){return d[i.id]}),p:w.filter(function(i){return d[i.id]}).length+'/'+w.length});
+  var en=it.filter(function(i){return i.c==='en'}),ed=en.filter(function(i){return d[i.id]}).length;
+  if(en.length)m.push({t:'Inglês do dia (2 blocos ou mais)',ok:ed>=2,p:ed+'/'+en.length});
+  m.push({t:'Meta de água do dia',ok:waterN()>=S.wat.goal,p:waterN()+'/'+S.wat.goal});
+  return m}
+function streak(){var n=0,d=new Date(),k,x,its,dn,p;
+  for(k=0;k<60;k++){x=new Date(d);x.setDate(d.getDate()-k);its=items(dayIdx(x)).filter(function(i){return i.imp});dn=S.done[dstr(x)]||{};
+    p=its.length?its.filter(function(i){return dn[i.id]}).length/its.length:0;
+    if(p>=.7)n++;else if(k>0)break}
+  return n}
+function pct(di,date){var its=items(di).filter(function(i){return i.imp}),dn=S.done[dstr(date)]||{};return its.length?Math.round(100*its.filter(function(i){return dn[i.id]}).length/its.length):0}
+
+/* ========= som, toast, notificações ========= */
+var AC=null;
+function beep(f,ms){try{if(!S.sound||S.mode==='silencioso')return;AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f||880;g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+(ms||140)/1000)}catch(e){}}
+var toastT=0;
+function toast(t){var el=$('#toast');el.textContent=t;el.className='on';clearTimeout(toastT);toastT=setTimeout(function(){el.className=''},3200)}
+function notify(title,body,sound){
+  toast(title+(body?' — '+body:''));
+  var quiet=!sound||!S.sound||S.mode==='silencioso';
+  if(!quiet)beep(660,220);
+  if(!S.notif||!('Notification' in window)||Notification.permission!=='granted')return;
+  var o={body:body||'',icon:'icon-192.png',badge:'icon-192.png',silent:quiet,tag:'jv-'+title};
+  function fb(){try{new Notification(title,o)}catch(e){}}
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){
+      navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification(title,o);else fb()}).catch(fb)
+    }else fb();
+  }catch(e){fb()}
+}
+function tick(){if(NATIVE)return;
+  var dk=dstr(),now=mm(nowT()),d=doneToday(),ch=false,k;
+  for(k in S.notified)if(k!==dk){delete S.notified[k];ch=true}
+  S.notified[dk]=S.notified[dk]||{};
+  items().forEach(function(i){
+    var df=now-mm(i.t);
+    if(!i.imp||df<0||df>2||S.notified[dk][i.id]||d[i.id])return;
+    if(S.mode==='estudo'&&i.c!=='study'&&i.c!=='en')return;
+    if(S.mode==='treino'&&!i.w)return;
+    S.notified[dk][i.id]=1;ch=true;
+    notify(i.title,i.d||('Agora ('+i.t+')'),i.snd);
+  });
+  /* lembrete de água (PC e navegador; no celular quem avisa é o app) */
+  var hh=new Date().getHours();
+  if(S.wat.on&&hh>=7&&hh<21&&waterN()<S.wat.goal){
+    if(!S.wlast){S.wlast=Date.now();ch=true}
+    else if(Date.now()-S.wlast>=S.wat.every*60000){S.wlast=Date.now();ch=true;notify('Beba água',waterN()+' de '+S.wat.goal+' copos hoje',true)}
+  }
+  if(ch)save();
+}
+
+/* ========= ações ========= */
+function toggle(id){
+  var dk=dstr(),d=S.done[dk]=S.done[dk]||{},f=findItem(id),it=f&&f.i;
+  if(d[id])delete d[id];else{d[id]=it&&it.imp?20:10;beep(900,90)}
+  pubRaw({type:'done',date:dk,id:id,xp:d[id]||0});
+  save();render()}
+function setMode(m){S.mode=m;save();if(NATIVE){try{NATIVE.setMode(m)}catch(e){}}pubRaw({type:'mode',v:m});render();toast('Modo '+m)}
+function curNext(){
+  var n=mm(nowT()),d=doneToday(),it=items(),cur=null,nxt=null,i;
+  for(i=0;i<it.length;i++){if(!d[it[i].id]){if(mm(it[i].t)<=n){cur=it[i]}else if(!nxt){nxt=it[i]}}}
+  if(cur&&n-mm(cur.t)>90)cur=null;
+  return {cur:cur,next:nxt}}
+function snoozeItem(id,min){
+  var f=findItem(id);if(!f)return false;var dt=dateFor(f.di)||dstr();
+  var t=mm(f.di===dayIdx()?nowT():f.i.t)+(min||30);t=Math.min(t,23*60+59);
+  ovGet(dt,true).move[id]=pad(Math.floor(t/60))+':'+pad(t%60);save();render();return true}
+function skipItem(id){var f=findItem(id);if(!f)return false;var dt=dateFor(f.di)||dstr(),o=ovGet(dt,true);
+  if(f.i.id&&String(f.i.id).indexOf('add_')===0){o.add=o.add.filter(function(x){return x.id!==id})}else o.skip[id]=1;save();render();return true}
+function addItem(a){
+  var dt=dstr(),di=dayIdx();if(a.date==='amanha'){var d=new Date();d.setDate(d.getDate()+1);dt=dstr(d);di=dayIdx(d)}
+  var t=/^\d{1,2}:\d{2}$/.test(a.t||'')?a.t:nowT();t=pad(+t.split(':')[0])+':'+t.split(':')[1];
+  var it={id:'add_'+dt+'_'+t.replace(':','')+'_'+slug(a.title||'item'),t:t,title:String(a.title||'Item').slice(0,60),d:String(a.d||'').slice(0,140),imp:!!a.imp,snd:!!a.imp,w:'',c:a.c||'',u:''};
+  ovGet(dt,true).add.push(it);save();render();return it}
+
+/* treino */
+var draft={},rest={end:0};
+function exKey(k,e){return k+':'+slug(e.n)}
+function todayWk(){var w=items().find(function(i){return i.w});return w?w.w:''}
+function lastLog(key){
+  var ds=Object.keys(S.logs).sort().reverse(),dk=dstr(),i,a,j;
+  for(i=0;i<ds.length;i++){if(ds[i]===dk)continue;a=S.logs[ds[i]][key];if(a){for(j=a.length-1;j>=0;j--)if(a[j])return a[j]}}
+  return null}
+function setToggle(k,idx,si){
+  var w=R().wk[k];if(!w)return;
+  var e=w.ex[idx],key=exKey(k,e),dk=dstr(),L=S.logs[dk]=S.logs[dk]||{},a=L[key];
+  if(!a||a.length!==e.s)a=L[key]=new Array(e.s).fill(null);
+  if(a[si])a[si]=null;
+  else{var dr=draft[key]||{},ll=lastLog(key)||{};
+    a[si]={kg:dr.kg!=null?dr.kg:(ll.kg||''),r:dr.r!=null?dr.r:(ll.r||'')};
+    startRest(e.s>1?75:0)}
+  var all=w.ex.every(function(x){var b=L[exKey(k,x)];return b&&b.length===x.s&&b.every(function(v){return v})});
+  if(all){var dn=S.done[dk]=S.done[dk]||{};items().forEach(function(i){if(i.w===k&&!dn[i.id]){dn[i.id]=20;toast('Treino completo! +XP')}})}
+  save();render()}
+function startRest(sec){if(!sec){rest.end=0;return}rest.end=Date.now()+sec*1000;rest.beeped=false}
+function tickRest(){
+  var el=$('#rest');if(!el)return;
+  var left=Math.ceil((rest.end-Date.now())/1000);
+  if(!rest.end){el.style.display='none';return}
+  el.style.display='flex';
+  if(left>0){el.innerHTML='<span>Descanso</span><b>'+Math.floor(left/60)+':'+pad(left%60)+'</b><button class="btn ghost" data-a="skip">Pular</button>'}
+  else{el.innerHTML='<span>Pronto, próxima série</span><button class="btn ghost" data-a="skip">Ok</button>';if(!rest.beeped){rest.beeped=true;beep(988,300)}}
+}
+
+/* ========= importação ========= */
+function parseText(txt){
+  var days=[[],[],[],[],[],[],[]],ex={},cur=-1,lastT='08:00',all=[],n=0,wkd={};
+  var hr=/^(segunda|terca|quarta|quinta|sexta|sabado|domingo|seg|ter|qua|qui|sex|sab|dom)\b/;
+  var idxOf={segunda:0,seg:0,terca:1,ter:1,quarta:2,qua:2,quinta:3,qui:3,sexta:4,sex:4,sabado:5,sab:5,domingo:6,dom:6};
+  txt.split(/\r?\n/).forEach(function(raw){
+    var line=raw.replace(/^\s*(?:[#>*\-+]+\s*)*(?:\[[ xX]\]\s*)?/,'').replace(/\*\*/g,'').trim();
+    if(!line)return;
+    var nl=norm(line).replace(/[:\-–—\s]+$/,'').trim();
+    var tm=line.match(/^(\d{1,2})(?::|h)(\d{2})?\s*(?:[-–a]\s*\d{1,2}(?::|h)?\d{0,2})?\s*[-–—:]?\s*(.*)$/);
+    if(!tm){
+      if(/^(todos os dias|todo dia|diario|diaria)\b/.test(nl)&&nl.length<30){cur=-2;return}
+      var h=nl.match(hr);if(h&&nl.length<45&&!/\d\s*[x×]\s*\d/.test(nl)){cur=idxOf[h[1]];return}
+    }
+    if(cur===-1)return;
+    var title=line,t=null;
+    if(tm){t=pad(Math.min(23,+tm[1]))+':'+pad(+(tm[2]||0));title=tm[3].trim()||'Item';lastT=t}
+    var detail='',sp=title.split(/\s+[—–-]\s+/);
+    var exm=title.match(/^(.*?)\s*[-–—:]?\s*(\d+)\s*[x×]\s*(\d+(?:\s*[-–a]\s*\d+)?|falha|m[aá]x\w*)/i);
+    var targets=cur===-2?[0,1,2,3,4,5,6]:[cur];
+    if(exm&&exm[1].trim().length>1){
+      targets.forEach(function(di){var key='imp_'+di;(ex[key]=ex[key]||{name:'Treino de '+DN[di],t:t||lastT,list:[]}).list.push({n:exm[1].trim().replace(/[-–—:]+$/,'').trim(),s:+exm[2],r:exm[3].replace(/\s+/g,'')});if(t)ex[key].t=ex[key].t||t});
+      n++;return}
+    if(sp.length>1){title=sp[0];detail=sp.slice(1).join(' — ')}
+    targets.forEach(function(di){days[di].push({id:'x'+di+'_'+lastT.replace(':','')+'_'+slug(title),t:t||lastT,title:title,d:detail,imp:/!|\*$/.test(raw)||/treino|dormir|acordar|almo[cç]o|janta|estud|ingl/i.test(title),snd:/treino|dormir|acordar/i.test(title),w:'',c:/ingl/i.test(title)?'en':/estud|aula|prova/i.test(title)?'study':/treino/i.test(title)?'train':'',u:''})});
+    n++;
+  });
+  Object.keys(ex).forEach(function(key){
+    var di=+key.split('_')[1],wid='imp'+di;
+    wkd[wid]={name:ex[key].name,ex:ex[key].list};
+    var ex0=days[di].find(function(i){return /^treino/i.test(i.title)&&!i.w});
+    if(ex0){ex0.w=wid;ex0.imp=true;ex0.snd=true;ex0.c='train';if(!ex0.d)ex0.d=ex[key].list.length+' exercícios'}
+    else days[di].push({id:'x'+di+'_'+ex[key].t.replace(':','')+'_treino',t:ex[key].t,title:'Treino',d:ex[key].list.length+' exercícios',imp:true,snd:true,w:wid,c:'train',u:''});
+  });
+  days.forEach(function(a){a.sort(cmpT)});
+  return {days:days,wk:wkd,count:n}}
+function importText(txt,name){
+  txt=String(txt||'').trim();name=(name||'').trim()||'Rotina importada';var r;
+  if(!txt){toast('Cole a rotina primeiro');return false}
+  try{
+    if(txt[0]==='{'){var j=JSON.parse(txt);
+      if(j.rs&&j.done){ /* backup completo */
+        var keep=S.ai;S=Object.assign(S,j);S.ai=keep;save();render();toast('Backup restaurado');return true}
+      if(!j.days||j.days.length!==7)throw new Error('JSON sem 7 dias');r={id:'c'+Date.now(),name:j.name||name,days:j.days,wk:j.wk||{}}}
+    else{var p=parseText(txt);if(!p.count){toast('Não achei itens. Use títulos de dia (Segunda, Terça…) e horários como 06:30');return false}r={id:'c'+Date.now(),name:name,days:p.days,wk:p.wk}}
+  }catch(e){toast('Erro ao ler: '+e.message);return false}
+  S.rs.push(r);S.cur=r.id;S.tab='hoje';save();render();toast('Rotina "'+r.name+'" ativada');return true}
+function doImport(){importText($('#imp').value,$('#impname').value)}
+
+/* ========= abrir apps e links ========= */
+function persist(){try{localStorage.setItem('jarvis_v1',JSON.stringify(S))}catch(e){}}
+function device(){return (NATIVE||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent))?'celular':'pc'}
+function listensHere(){return S.ear==='ambos'||S.ear===device()}
+function openUrl(u){
+  if(!/^https?:/i.test(u))return;
+  if(NATIVE){try{NATIVE.openUrl(u)}catch(e){}}else if(DESK){DESK.openUrl(u)}else{try{window.open(u,'_blank')}catch(e){}}}
+function openApp(name,url){
+  url=url||SITES[norm(name).replace(/[^a-z0-9]/g,'')]||'';
+  if(NATIVE){try{NATIVE.openApp(name,url)}catch(e){}}
+  else if(DESK){DESK.openApp(name,url)}
+  else openUrl(url||'https://www.google.com/search?q='+encodeURIComponent(name))}
+function openSpotify(q){
+  if(NATIVE){try{NATIVE.openSpotify(q||'')}catch(e){}return}
+  if(DESK){DESK.openApp('Spotify',q?'spotify:search:'+encodeURIComponent(q):'');return}
+  if(q)openUrl('https://open.spotify.com/search/'+encodeURIComponent(q));else openApp('Spotify','https://open.spotify.com')}
+function openYoutube(q){openUrl(q?'https://www.youtube.com/results?search_query='+encodeURIComponent(q):'https://www.youtube.com')}
+
+/* ========= voz do Jarvis (falar) ========= */
+var spkTok=0,spkA=null;
+function cleanSpeech(t){return String(t||'').replace(/https?:\/\/\S+/g,'').replace(/[*_`#>]/g,'').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').trim()}
+function pickVoice(){
+  var vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[],pt=vs.filter(function(v){return /^pt/i.test(v.lang)});
+  if(!pt.length)return null;
+  if(S.tts.name){var f=pt.find(function(v){return v.name===S.tts.name});if(f)return f}
+  var sc=function(v){var s=0;if(/pt[-_]BR/i.test(v.lang))s+=5;if(/natural|neural/i.test(v.name))s+=10;if(/online/i.test(v.name))s+=4;if(/google/i.test(v.name))s+=3;if(/francisca|antonio|maria|luciana/i.test(v.name))s+=2;return s};
+  pt.sort(function(a,b){return sc(b)-sc(a)});return pt[0]}
+function stopSpeak(){spkTok++;try{if(spkA){spkA.pause();spkA=null}}catch(e){}try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}}
+function speakSys(t){
+  try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';u.rate=Math.min(2,Math.max(.6,S.tts.rate||1.2));u.pitch=S.tts.pitch||1;var v=pickVoice();if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}}
+function chunkText(t){
+  var raw=t.match(/[^.!?;\n]+[.!?;]?/g)||[t],out=[],cur='';
+  raw.forEach(function(s){s=s.trim();if(!s)return;if((cur+' '+s).length>170){if(cur)out.push(cur);cur=s}else cur=cur?cur+' '+s:s});
+  if(cur)out.push(cur);return out.map(function(x){return x.slice(0,190)})}
+function speakOnline(t,fail){
+  var parts=chunkText(t),i=0,tok=++spkTok,failed=false;
+  function bad(){if(!failed&&i<=1){failed=true;if(fail)fail()}else next()}
+  function next(){
+    if(tok!==spkTok||i>=parts.length)return;
+    var a=new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=pt-BR&q='+encodeURIComponent(parts[i++]));
+    a.playbackRate=Math.min(1.8,Math.max(.8,S.tts.rate||1.2));try{a.preservesPitch=true}catch(e){}
+    spkA=a;a.onended=next;a.onerror=bad;
+    var pr=a.play();if(pr&&pr.catch)pr.catch(bad)}
+  next()}
+function speakEleven(t,fail){
+  var tok=++spkTok;
+  fetch('https://api.elevenlabs.io/v1/text-to-speech/'+(S.tts.elVoice||'21m00Tcm4TlvDq8ikWAM')+'?output_format=mp3_44100_64',{method:'POST',headers:{'xi-api-key':S.tts.elKey,'Content-Type':'application/json',Accept:'audio/mpeg'},body:JSON.stringify({text:t,model_id:'eleven_flash_v2_5',voice_settings:{stability:.5,similarity_boost:.75,speed:Math.min(1.2,Math.max(.7,S.tts.rate||1))}})})
+  .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.blob()})
+  .then(function(b){if(tok!==spkTok)return;var a=new Audio(URL.createObjectURL(b));spkA=a;a.onerror=function(){if(fail)fail()};var pr=a.play();if(pr&&pr.catch)pr.catch(function(){if(fail)fail()})})
+  .catch(function(){if(tok===spkTok&&fail)fail()})}
+function speak(t,force){
+  t=cleanSpeech(t);if(!t)return;
+  if(!force&&(!S.sound||S.mode==='silencioso'))return;
+  if(NATIVE){try{NATIVE.speak(t)}catch(e){}return}
+  if(S.tts.elKey&&S.tts.elKey.length>10&&t.length<=400){speakEleven(t,function(){if(DESK&&S.tts.engine!=='system')speakOnline(t,function(){speakSys(t)});else speakSys(t)});return}
+  if(DESK&&S.tts.engine!=='system'){speakOnline(t,function(){speakSys(t)});return}
+  speakSys(t)}
+if(window.speechSynthesis){try{speechSynthesis.onvoiceschanged=function(){if(S.tab==='ajustes')render()}}catch(e){}}
+
+/* ========= IA (Gemini) ========= */
+function aiReady(){return aiKeys().length>0}
+var aiSeq=0,aiWait={};
+window.aiDone=function(id,s){var r;try{r=JSON.parse(s)}catch(e){r={ok:false,err:'resposta inválida'}}var f=aiWait[id];if(f){delete aiWait[id];f(r)}};
+var PROVS=[
+ {id:'gemini',n:'Gemini',re:/^AIza/},
+ {id:'groq',n:'Groq',re:/^gsk_/,url:'https://api.groq.com/openai/v1/chat/completions',models:['llama-3.3-70b-versatile','llama-3.1-8b-instant'],json:true},
+ {id:'openrouter',n:'OpenRouter',re:/^sk-or-/,url:'https://openrouter.ai/api/v1/chat/completions',models:['openrouter/free','openai/gpt-oss-120b:free'],json:false},
+ {id:'cerebras',n:'Cerebras',re:/^csk-/,url:'https://api.cerebras.ai/v1/chat/completions',models:['gpt-oss-120b','llama3.1-8b'],json:true},
+ {id:'openai',n:'OpenAI',re:/^sk-/,url:'https://api.openai.com/v1/chat/completions',models:['gpt-4o-mini'],json:true}];
+function aiKeys(){return String(S.ai.key||'').split(/[\s,;]+/).filter(function(k){return k.length>10})}
+function provOf(k){for(var i=0;i<PROVS.length;i++)if(PROVS[i].re.test(k))return PROVS[i];return PROVS[0]}
+function compatWeb(p,key,body){
+  var idx=0,lastErr='sem resposta',msgs=[];
+  var sy=body.systemInstruction&&body.systemInstruction.parts&&body.systemInstruction.parts[0]&&body.systemInstruction.parts[0].text;if(sy)msgs.push({role:'system',content:sy});
+  (body.contents||[]).forEach(function(c){msgs.push({role:c.role==='model'?'assistant':'user',content:(c.parts||[]).map(function(x){return x.text||''}).join('')})});
+  var gc=body.generationConfig||{};
+  function go(){
+    if(idx>=p.models.length)return Promise.resolve({ok:false,err:lastErr});
+    var req={model:p.models[idx],messages:msgs,temperature:gc.temperature==null?0.5:gc.temperature,max_tokens:gc.maxOutputTokens||900};
+    if(p.json&&gc.responseMimeType==='application/json')req.response_format={type:'json_object'};
+    return fetch(p.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(req)}).then(function(r){return r.text().then(function(t){
+      var j;try{j=JSON.parse(t)}catch(e){j={}}
+      if(r.ok){var tx=(((j.choices||[])[0]||{}).message||{}).content||'';if(tx)return {ok:true,text:tx};lastErr='resposta vazia';idx++;return go()}
+      var em=(j.error&&(j.error.message||j.error))||t.slice(0,100);lastErr='HTTP '+r.status+': '+String(em).slice(0,140);
+      if(r.status===401||r.status===403)return {ok:false,err:lastErr};
+      idx++;return go()})}).catch(function(){return {ok:false,err:'sem internet ou falha de rede'}})}
+  return go()}
+function geminiWeb(body,key){
+  var models=[/gemini/i.test(S.ai.model||'')?S.ai.model:'','gemini-flash-latest','gemini-2.5-flash','gemini-2.5-flash-lite'].filter(function(m,i,a){return m&&a.indexOf(m)===i}),idx=0,lastErr='sem resposta';
+  function go(b){
+    if(idx>=models.length)return Promise.resolve({ok:false,err:lastErr});
+    return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+models[idx]+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(b)}).then(function(r){return r.text().then(function(t){
+      var j;try{j=JSON.parse(t)}catch(e){j={}}
+      if(r.ok){var tx=((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(function(p){return p.text||''}).join('');if(tx)return {ok:true,text:tx};lastErr='resposta vazia';idx++;return go(b)}
+      var em=(j.error&&j.error.message)||t.slice(0,100);lastErr='HTTP '+r.status+': '+String(em).slice(0,140);
+      if(r.status===400&&/thinking/i.test(em)&&b.generationConfig&&b.generationConfig.thinkingConfig){var b2=JSON.parse(JSON.stringify(b));delete b2.generationConfig.thinkingConfig;return go(b2)}
+      if(r.status===401||r.status===403||(r.status===400&&/api key/i.test(em)))return {ok:false,err:lastErr};
+      idx++;return go(b)})}).catch(function(){return {ok:false,err:'sem internet ou falha de rede'}})}
+  return go(body)}
+function aiOne(k,body){
+  var p=provOf(k);
+  return (p.id==='gemini'?geminiWeb(body,k):compatWeb(p,k,body)).then(function(r){if(r.ok)r.prov=p.n;else r.err=p.n+': '+r.err;return r})}
+function aiChain(ks,i,body,last){
+  if(i>=ks.length)return Promise.resolve({ok:false,err:last||'sem resposta'});
+  return aiOne(ks[i],body).then(function(r){return r.ok?r:aiChain(ks,i+1,body,(last?last+' | ':'')+r.err)})}
+function aiCall(body){
+  if(NATIVE)return new Promise(function(res){
+    var id='a'+(++aiSeq);aiWait[id]=res;
+    try{NATIVE.ai(id,S.ai.key,S.ai.model,JSON.stringify(body))}catch(e){delete aiWait[id];res({ok:false,err:String(e)});return}
+    setTimeout(function(){if(aiWait[id]){delete aiWait[id];res({ok:false,err:'tempo esgotado'})}},60000)});
+  var ks=aiKeys();if(!ks.length)return Promise.resolve({ok:false,err:'sem chave'});
+  return aiChain(ks,0,body,'')}
+var PROMPT='Você é o Jarvis, assistente pessoal de um adolescente brasileiro, dentro do app dele de rotina (Glow Up). Fale em português do Brasil, informal, direto e curto, sem emoji. Use texto simples (sem markdown, sem asteriscos), porque a resposta também pode ser falada em voz alta.\n'+
+'Objetivo dele: 70 kg com shape estético até 01/01/2028, inglês fluente, estilo e rotina organizada.\n'+
+'Responda SEMPRE e somente com um JSON: {"say":"texto","actions":[],"target":null}\n'+
+'"say": 1 a 2 frases para comandos; até 6 frases para dúvidas (pode usar linhas curtas). Nunca vazio. Só diga que fez algo se incluiu a ação correspondente.\n'+
+'"target": "pc" ou "celular" se ele pediu para fazer no outro aparelho; senão null.\n'+
+'Ações possíveis:\n'+
+'{"type":"open_app","name":"Spotify","url":"https://open.spotify.com"} (abre app instalado pelo nome; sempre inclua a url do site equivalente quando existir)\n'+
+'{"type":"open_url","url":"https://..."}\n{"type":"youtube","q":"busca"}\n{"type":"spotify","q":"busca ou vazio"}\n{"type":"search","q":"busca no Google"}\n'+
+'{"type":"mode","v":"normal|silencioso|estudo|treino"}\n{"type":"tab","v":"hoje|treino|semana|guia|jarvis|ajustes"}\n'+
+'{"type":"done","id":"id do item (vazio = item atual)"}\n{"type":"snooze","id":"id (vazio = item atual)","min":30}\n'+
+'{"type":"skip_item","id":"id"} (pula o item hoje)\n'+
+'{"type":"add_item","t":"HH:MM","title":"...","d":"detalhe","imp":false,"date":"hoje|amanha"}\n'+
+'{"type":"sub","id":"id do item de assistir","v":"none|en|dual"} (legenda: sem legenda, inglês, dupla)\n'+
+'{"type":"water","n":1}\n{"type":"ear","v":"pc|celular|ambos"}\n{"type":"stop_listening"}\n'+
+'{"type":"routine","name":"Férias","text":"Segunda\\n07:00 Acordar\\n08:00 Treino\\nFlexão 4x10\\n\\nTerça\\n..."} (monta uma rotina semanal nova no formato: títulos de dia, linhas "HH:MM Título — detalhe", exercícios "Nome 4x8-12"; o usuário confirma antes de ativar)\n'+
+'Para ajustes pontuais ("amanhã tenho prova às 8h", "adia isso", "pula o Anki hoje") use add_item, snooze e skip_item, não routine. Use os ids da lista de itens abaixo.\n'+
+'Dúvidas sobre dieta, treino, inglês, rosto, cabelo e estilo: responda com base no GUIA e no contexto. Se ele disser que não tem um ingrediente ou que algo falhou, proponha a opção B ou uma troca equivalente do guia. Outros assuntos: responda normalmente como assistente geral.\n';
+var KB='';
+function ctxText(extra){
+  if(!KB)KB=kbText();
+  var n=new Date(),s=PROMPT+'\nPlataforma: '+(NATIVE?'celular (app aberto)':DESK?'PC':'navegador')+'. Dispositivos ligados: '+(S.pair?'sim':'não')+'.\nCONTEXTO ATUAL\nAgora: '+n.toLocaleString('pt-BR',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})+'\nModo: '+S.mode+'\nÁgua hoje: '+waterN()+' de '+S.wat.goal+' copos de 250 ml\n';
+  var d=doneToday();
+  s+='Itens de hoje ('+DN[dayIdx()]+'):\n'+items().map(function(i){return i.t+' '+i.title+(i.d?' ('+i.d+')':'')+(d[i.id]?' [feito]':' [pendente]')+' id='+i.id}).join('\n')+'\n';
+  s+='Itens de amanhã ('+DN[(dayIdx()+1)%7]+'):\n'+items((dayIdx()+1)%7).map(function(i){return i.t+' '+i.title+' id='+i.id}).join('\n')+'\n';
+  if(extra)s+='\n'+extra+'\n';
+  s+='\nGUIA\n'+KB;
+  return s}
+function aiBody(k,extra){
+  var h=chatArr(k).filter(function(m){return m.r==='u'||m.r==='a'}).slice(-9).map(function(m){return {role:m.r==='u'?'user':'model',parts:[{text:m.t}]}});
+  while(h.length&&h[0].role!=='user')h.shift();
+  return {systemInstruction:{parts:[{text:ctxText(extra)}]},contents:h,generationConfig:{responseMimeType:'application/json',temperature:0.5,maxOutputTokens:1100,thinkingConfig:{thinkingBudget:0}}}}
+function parseAI(t){
+  t=String(t||'').trim().replace(/^```[a-z]*\s*/i,'').replace(/```$/,'').trim();
+  var a=t.indexOf('{'),b=t.lastIndexOf('}');
+  if(a>=0&&b>a){try{var o=JSON.parse(t.slice(a,b+1));if(typeof o==='object'&&o)return o}catch(e){}}
+  return {say:t.slice(0,500),actions:[]}}
+function aiAsk(k,extra){return aiCall(aiBody(k,extra)).then(function(r){if(!r.ok)return r;return {ok:true,o:parseAI(r.text)}})}
+function testAI(){
+  if(!aiReady()){toast('Cole a chave primeiro');return}
+  toast('Testando a IA…');
+  aiCall({contents:[{role:'user',parts:[{text:'Responda só com a palavra: ok'}]}],generationConfig:{maxOutputTokens:20}}).then(function(r){
+    S.ai.ok=!!r.ok;S.ai.err=r.ok?'':r.err;persist();toast(r.ok?'IA funcionando'+(r.prov?' ('+r.prov+')':''):'Falhou: '+r.err);render()})}
+
+/* ========= executar ações da IA ========= */
+function doActions(acts){
+  var out={rt:null};
+  (acts||[]).forEach(function(a){
+    if(!a||!a.type)return;
+    try{switch(a.type){
+      case 'open_app':openApp(a.name||'',a.url||'');break;
+      case 'open_url':openUrl(a.url||'');break;
+      case 'youtube':openYoutube(a.q||'');break;
+      case 'spotify':openSpotify(a.q||'');break;
+      case 'search':openUrl('https://www.google.com/search?q='+encodeURIComponent(a.q||''));break;
+      case 'mode':if(MODES.indexOf(a.v)>=0)setMode(a.v);break;
+      case 'tab':if(TABS.some(function(t){return t[0]===a.v})){closeSheet();S.tab=a.v;save();render()}break;
+      case 'done':{var id=a.id;if(!id){var c=curNext(),it=c.cur||c.next;id=it&&it.id}if(id&&!doneToday()[id])toggle(id);break}
+      case 'snooze':{var id2=a.id;if(!id2){var c2=curNext(),i2=c2.cur||c2.next;id2=i2&&i2.id}if(id2)snoozeItem(id2,+a.min||30);break}
+      case 'skip_item':if(a.id)skipItem(a.id);break;
+      case 'add_item':addItem(a);break;
+      case 'sub':if(a.id&&SUBS.some(function(s){return s[0]===a.v})){S.sub[a.id]=a.v;save();render()}break;
+      case 'water':addWater(+a.n||1);break;
+      case 'ear':if(['pc','celular','ambos'].indexOf(a.v)>=0)applyEar(a.v);break;
+      case 'stop_listening':stopVoice();break;
+      case 'routine':if(a.text)out.rt={name:a.name||'Rotina nova',text:String(a.text)};break;
+    }}catch(e){}});
+  return out}
+function applyEar(tg){
+  S.ear=tg;save();if(NATIVE){try{NATIVE.setEar(tg)}catch(e){}}pubRaw({type:'ear',v:tg});
+  if(!NATIVE){if(!listensHere())stopVoice(true);else if(S.voice)startVoice()}
+  render()}
+function applyAI(o){
+  var acts=o.actions||[];
+  if((o.target==='pc'||o.target==='celular')&&o.target!==device()&&acts.length){
+    if(!S.pair){return {rt:null,note:'Faça a ligação entre PC e celular nos Ajustes primeiro.'}}
+    pubRaw({type:'actions',to:o.target,actions:acts});return {rt:null}}
+  return doActions(acts)}
+
+/* ========= conversa ========= */
+var CH={},busy={};
+function chatArr(k){if(k==='free')return S.chatFree;return CH[k]=CH[k]||[]}
+function chatAdd(k,r,t,rt){var a=chatArr(k);a.push({r:r,t:t,rt:rt||null});if(a.length>60)a.splice(0,a.length-60);if(k==='free')persist();updChat()}
+function quick(t){var n=norm(t).replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();return /^modo (silencioso|estudo|treino|normal)$/.test(n)||/^(para|pare|parar) (de )?ouvir$/.test(n)}
+function handleText(text,opts){
+  opts=opts||{};var k=opts.k||'free';text=String(text||'').trim();if(!text||busy[k])return;
+  chatAdd(k,'u',text);
+  var spk=function(t){if(opts.voice||S.speakTyped)speak(t)};
+  function rules(){var r=runRules(text);chatAdd(k,'a',r);spk(r)}
+  if(!aiReady()||quick(text)){rules();return}
+  busy[k]=true;updChat();
+  aiAsk(k,opts.ctx).then(function(res){
+    busy[k]=false;
+    if(!res.ok){chatAdd(k,'s','IA indisponível ('+res.err+'). Usei os comandos simples.');rules();return}
+    var o=res.o,out=applyAI(o);
+    chatAdd(k,'a',(o.say||'Pronto.')+(out.note?'\n'+out.note:''),out.rt);spk(o.say||'')
+  }).catch(function(){busy[k]=false;rules()})}
+
+/* comandos simples (sem IA / reserva) — devolve o texto da resposta */
+function runRules(raw){
+  var n=norm(raw).replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim(),m;
+  if(!n)return '';
+  if(!/ouvido/.test(n)){
+    var xm=n.match(/\s(?:no|pro|para o|pra o)\s+(pc|computador|notebook|celular|telefone)\s*$/);
+    if(xm){var tgt=/(pc|computador|notebook)/.test(xm[1])?'pc':'celular',clean=raw.replace(/\s+(no|pro|para o|pra o)\s+\S+\s*$/i,'');
+      if(tgt!==device()){if(!S.pair)return 'Faça a ligação PC e celular em Ajustes primeiro.';pubRaw({type:'cmd',to:tgt,text:clean});return 'Mandei para o '+(tgt==='pc'?'PC':'celular')}
+      return runRules(clean)}}
+  if(/\b(youtube|you tube)\b/.test(n)){
+    m=n.match(/(?:pesquis\w*|busc\w*|procur\w*)\s+(?:por\s+)?(.+)$/);
+    var q=m?m[1].replace(/\s+(no|pelo|na)\s+(youtube|you tube)$/,'').trim():'';
+    openYoutube(q);return q?'Pesquisando '+q+' no YouTube':'Abrindo o YouTube'}
+  if((m=n.match(/modo\s+(silencioso|estudo|treino|normal)/))){setMode(m[1]);return 'Modo '+m[1]+' ativado'}
+  if(/ouvido|ouvir (so|apenas)|so (ouvindo|ouve)/.test(n)&&/(pc|computador|notebook|celular|telefone|ambos|os dois)/.test(n)){
+    var tg=/(pc|computador|notebook)/.test(n)?'pc':/(celular|telefone)/.test(n)?'celular':'ambos';
+    applyEar(tg);return tg==='ambos'?'Ouvindo nos dois aparelhos':'Agora só o '+(tg==='pc'?'PC':'celular')+' escuta.'}
+  if(/(para|pare|parar)\s+(de\s+)?ouvir|desativ\w+\s+(a\s+)?voz/.test(n)){stopVoice();return 'Parei de ouvir'}
+  if(/(que (eu )?(faco|tenho|devo)|oque (eu )?(faco|tenho)).*agora|agora.*(que|oque)|proximo/.test(n)||/^(agora|me diga|o que fazer)/.test(n)){
+    var cn=curNext(),it=cn.cur||cn.next;
+    return it?(cn.cur?'Agora: ':'Próximo às '+it.t+': ')+it.title+(it.d?'. '+it.d:''):'Você já fez tudo de hoje. Descanse.'}
+  if(/(mostr|abr|ver|v[aá]\w*).*treino|treino de hoje|meu treino/.test(n)){S.tab='treino';save();render();var k=todayWk();return k?'Treino de hoje: '+R().wk[k].name:'Hoje não tem treino marcado. Escolha um na aba Treino.'}
+  if(/\b(bebi|tomei)\b.*\b(agua|copo)/.test(n)){addWater(1);return 'Anotado. '+waterN()+' copos hoje.'}
+  if(/^(abr\w*|abra|inici\w*)\s+/.test(n)){
+    var nm=n.replace(/^(abr\w*|abra|inici\w*)\s+(o |a |os |as )?/,'');
+    if(/spotify/.test(nm)){openSpotify('');return 'Abrindo o Spotify'}
+    if(nm){openApp(nm,'');return 'Abrindo '+nm}}
+  if(/^(toca|toque|coloca|bota)\s+/.test(n)){var sq=n.replace(/^(toca|toque|coloca|bota)\s+/,'').replace(/\s+no spotify$/,'');openSpotify(sq);return 'Procurando '+sq+' no Spotify'}
+  if(/\b(marc\w*|conclu\w*|termin\w*|fiz|feito)\b/.test(n)){
+    var c2=curNext(),t2=c2.cur||c2.next;
+    if(t2){if(!doneToday()[t2.id])toggle(t2.id);return 'Marquei como feito: '+t2.title}return 'Não há item pendente.'}
+  if(/\b(xp|nivel|level|pontos)\b/.test(n)){var x=totalXP();return 'Você tem '+x+' XP, nível '+(Math.floor(x/250)+1)+', sequência de '+streak()+' dias.'}
+  if(/\bajuda\b|comandos/.test(n))return 'Sem a chave da IA eu entendo comandos simples: abrir apps e sites, YouTube, Spotify, modos, o que fazer agora, treino, água e marcar feito. Com a chave nos Ajustes eu entendo qualquer frase.';
+  if(/\b(oi|ola|e ai)\b/.test(n))return 'Estou aqui.';
+  return aiReady()?'Não entendi. Tente de outro jeito.':'Não entendi. Cole a chave da IA em Ajustes para eu entender qualquer coisa.'}
+
+/* ========= voz: ouvir ========= */
+var rec=null,awaiting=0,recWanted=false;
+function heard(t){
+  var n=norm(t),m=n.match(/\b(jarvis|jarves|garvis|jarviz|jarbis|charvis|jarvez|jarbas|ja vis|jarvi)\b(.*)$/);
+  if(m){var rest=m[2].trim();
+    if(rest){awaiting=0;var orig=t.length>=rest.length?t.slice(t.length-rest.length).trim():rest;handleText(orig,{k:'free',voice:true})}
+    else{awaiting=Date.now()+7000;chatAdd('free','a','Pois não?');speak('Pois não?')}}
+  else if(awaiting>Date.now()){awaiting=0;handleText(t,{k:'free',voice:true})}
+}
+/* ========= escuta no PC com Whisper (Groq) ========= */
+var WH={on:false,ctx:null,stream:null,proc:null,buf:[],pre:[],talking:false,lastVoice:0,start:0,floor:0.008,busy:0};
+function groqKey(){var ks=aiKeys();for(var i=0;i<ks.length;i++)if(/^gsk_/.test(ks[i]))return ks[i];return ''}
+function isSpeakingNow(){try{return !!((spkA&&!spkA.paused&&!spkA.ended)||(window.speechSynthesis&&speechSynthesis.speaking))}catch(e){return false}}
+function wavFrom(chunks,rate){
+  var n=0;chunks.forEach(function(c){n+=c.length});var all=new Float32Array(n),o=0;chunks.forEach(function(c){all.set(c,o);o+=c.length});
+  var r=16000,ratio=rate/r,len=Math.floor(n/ratio),buf=new ArrayBuffer(44+len*2),v=new DataView(buf);
+  function w(off,str){for(var i=0;i<str.length;i++)v.setUint8(off+i,str.charCodeAt(i))}
+  w(0,'RIFF');v.setUint32(4,36+len*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,r,true);v.setUint32(28,r*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,len*2,true);
+  for(var i=0;i<len;i++){var a=Math.floor(i*ratio),b=Math.max(a+1,Math.floor((i+1)*ratio)),sum=0;for(var k=a;k<b&&k<n;k++)sum+=all[k];var x=Math.max(-1,Math.min(1,sum/(b-a)));v.setInt16(44+i*2,x<0?x*0x8000:x*0x7FFF,true)}
+  return new Blob([buf],{type:'audio/wav'})}
+function whSend(chunks,rate,voicedMs){
+  if(voicedMs<300||WH.busy>2)return;
+  var key=groqKey();if(!key)return;
+  var fd=new FormData();fd.append('file',wavFrom(chunks,rate),'a.wav');fd.append('model','whisper-large-v3-turbo');fd.append('language','pt');fd.append('response_format','json');fd.append('temperature','0');
+  WH.busy++;
+  fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+key},body:fd}).then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j,s:r.status}})}).then(function(x){
+    WH.busy--;
+    if(x.ok){var t=String(x.j.text||'').trim();if(t.length>1){toast('Ouvi: '+t.slice(0,60));heard(t)}}
+    else{var m=(x.j.error&&x.j.error.message)||('HTTP '+x.s);toast(x.s===429?'Groq: limite de voz, espere um pouco':'Groq voz: '+String(m).slice(0,80))}
+  }).catch(function(){WH.busy--;toast('Voz: sem internet')})}
+function whStart(){
+  if(WH.on)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Sem acesso ao microfone neste app.');return}
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}}).then(function(stream){
+    var AC=window.AudioContext||window.webkitAudioContext,ctx=new AC();try{ctx.resume()}catch(e){}
+    WH.stream=stream;WH.ctx=ctx;WH.on=true;WH.buf=[];WH.pre=[];WH.talking=false;
+    var src=ctx.createMediaStreamSource(stream),proc=ctx.createScriptProcessor(4096,1,1);
+    proc.onaudioprocess=function(e){
+      if(!WH.on)return;
+      var c=new Float32Array(e.inputBuffer.getChannelData(0)),sum=0;for(var i=0;i<c.length;i++)sum+=c[i]*c[i];
+      var rms=Math.sqrt(sum/c.length),now=Date.now();
+      if(isSpeakingNow()){WH.talking=false;WH.buf=[];WH.pre=[];return}
+      var thr=Math.max(0.018,WH.floor*3.2);
+      if(!WH.talking){
+        WH.floor=WH.floor*0.97+rms*0.03;
+        WH.pre.push(c);if(WH.pre.length>3)WH.pre.shift();
+        if(rms>thr){WH.talking=true;WH.start=now;WH.lastVoice=now;WH.buf=WH.pre.slice();WH.pre=[]}
+      }else{
+        WH.buf.push(c);if(rms>thr*0.7)WH.lastVoice=now;
+        if(now-WH.lastVoice>900||now-WH.start>12000){WH.talking=false;var b=WH.buf;WH.buf=[];whSend(b,ctx.sampleRate,WH.lastVoice-WH.start)}
+      }};
+    src.connect(proc);proc.connect(ctx.destination);WH.proc=proc;
+    toast('Escutando com Groq Whisper')
+  }).catch(function(e){WH.on=false;toast('Sem acesso ao microfone ('+((e&&e.name)||'erro')+'). Veja Privacidade > Microfone no Windows.');S.voice=false;save();render()})}
+function whStop(){
+  WH.on=false;WH.talking=false;WH.buf=[];WH.pre=[];
+  try{if(WH.proc){WH.proc.onaudioprocess=null;WH.proc.disconnect()}}catch(e){}
+  try{if(WH.stream)WH.stream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+  try{if(WH.ctx)WH.ctx.close()}catch(e){}
+  WH.proc=null;WH.stream=null;WH.ctx=null}
+function startVoice(){if(DESK){if(!listensHere()){toast('Este aparelho não é o ouvido agora ('+S.ear+').');return}if(groqKey()){DESK.stopVoice();whStart();S.voice=true;save();render();return}DESK.startVoice();S.voice=true;save();render();return}if(NATIVE){try{NATIVE.startVoice()}catch(e){}S.voice=true;save();render();return}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Este navegador não tem reconhecimento de voz. Use Chrome ou Edge, ou digite.');S.voice=false;save();render();return}
+  if(!listensHere()){toast('Este aparelho não é o ouvido agora ('+S.ear+').');return}
+  try{if(rec){recWanted=false;rec.onend=null;rec.stop()}}catch(e){}
+  rec=new SR();rec.lang='pt-BR';rec.continuous=true;rec.interimResults=false;recWanted=true;
+  rec.onresult=function(e){for(var i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)heard(e.results[i][0].transcript)};
+  rec.onerror=function(e){if(e.error==='not-allowed'||e.error==='service-not-allowed'){recWanted=false;S.voice=false;save();toast('Permissão do microfone negada.');render()}};
+  rec.onend=function(){if(recWanted&&S.voice)setTimeout(function(){try{rec.start()}catch(e){}},400)};
+  try{rec.start();S.voice=true;save();render()}catch(e){toast('Não consegui iniciar o microfone.')}
+}
+function stopVoice(keep){if(DESK){whStop();DESK.stopVoice();if(!keep)S.voice=false;save();render();return}if(NATIVE){try{NATIVE.stopVoice()}catch(e){}S.voice=false;save();render();return}recWanted=false;try{if(rec){rec.onend=null;rec.stop()}}catch(e){}if(!keep)S.voice=false;save();render()}
+
+/* ========= renderização ========= */
+var TABS=[['hoje','Hoje','today'],['treino','Treino','gym'],['semana','Semana','week'],['guia','Guia','book'],['jarvis','Jarvis','jarvis'],['ajustes','Ajustes','gear']];
+var MODES=['normal','silencioso','estudo','treino'];
+var CAT={food:'comida',en:'inglês',study:'estudo',train:'treino',skin:'pele',game:'lazer',work:'trabalho',sleep:'sono',rest:''};
+var EXP={},GEXP={},SHEET=null;
+function head(){
+  var n=new Date();
+  $('#date').textContent=n.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  $('#clk').textContent='· '+nowT();
+  var x=totalXP(),lv=Math.floor(x/250)+1,into=x%250;
+  $('#lv').innerHTML='<b>Nv '+lv+'</b> · '+x+' XP<div class="bar"><i style="width:'+(into/250*100)+'%"></i></div><div class="small">Sequência: '+streak()+' dia(s)</div>';
+  $('#modes').innerHTML=MODES.map(function(m){return '<button class="mode'+(S.mode===m?' on':'')+'" data-a="mode" data-v="'+m+'">'+m[0].toUpperCase()+m.slice(1)+'</button>'}).join('');
+  $('#tabs').innerHTML=TABS.map(function(t){return '<button class="'+(S.tab===t[0]?'on':'')+'" data-a="tab" data-v="'+t[0]+'">'+IC[t[2]]+'<span>'+t[1]+'</span></button>'}).join('');
+}
+function rowHtml(i,d,cur,ro,di){
+  di=di==null?dayIdx():di;
+  var more=moreFor(i,di),sub=i.u?(S.sub[i.id]||i.u):'',x='',id=esc(i.id);
+  if(i.d)x+='<div class="dt">'+esc(i.d)+'</div>';
+  if(more)x+='<div class="mt">'+esc(more)+'</div>';
+  if(i.u)x+='<div class="seg">'+SUBS.map(function(s){return '<button class="'+(sub===s[0]?'on':'')+'" data-a="sub" data-v="'+id+'" data-s="'+s[0]+'">'+s[1]+'</button>'}).join('')+'</div>';
+  x+='<div class="btns">';
+  if(i.w&&!ro)x+='<button class="btn sm" data-a="openw" data-v="'+esc(i.w)+'">Abrir treino</button>';
+  x+='<button class="btn ghost sm" data-a="itemchat" data-v="'+id+'">'+IC.chat+' Perguntar</button>';
+  if(!ro&&!d[i.id])x+='<button class="btn ghost sm" data-a="snooze" data-v="'+id+'">Adiar 30 min</button><button class="btn ghost sm" data-a="skipit" data-v="'+id+'">Pular hoje</button>';
+  x+='</div>';
+  var ck=ro?'<span class="ck"><span></span></span>':'<button class="ck" data-a="tog" data-v="'+id+'" aria-label="marcar como feito"><span>'+(d[i.id]?IC.check:'')+'</span></button>';
+  return '<div class="row'+(d[i.id]?' dn':'')+(cur&&cur.id===i.id?' cur':'')+(EXP[i.id]?' open':'')+'" data-a="row" data-v="'+id+'">'+ck+'<div class="tm">'+esc(i.t)+'</div><div class="tb"><div class="tt">'+esc(i.title)+(CAT[i.c]?'<span class="tag">'+CAT[i.c]+'</span>':'')+(i.u?'<span class="tag">'+esc((SUBS.find(function(s){return s[0]===sub})||SUBS[0])[1])+'</span>':'')+'</div><div class="xp">'+x+'</div></div><span class="chev">'+IC.chev+'</span></div>'}
+function vHoje(){
+  var it=items(),d=doneToday(),cn=curNext(),ms=missions(),total=it.length,dn=it.filter(function(i){return d[i.id]}).length;
+  var h=waterHtml()+'<div class="card hero"><h3>'+(cn.cur?'Agora':'Próximo')+'</h3>';
+  var f=cn.cur||cn.next;
+  h+=f?'<div class="big">'+esc(f.title)+'</div><div class="dt">'+esc(f.t)+(f.d?' · '+esc(f.d):'')+'</div><div class="btns"><button class="btn" data-a="tog" data-v="'+esc(f.id)+'">'+(d[f.id]?'Desmarcar':'Marcar feito')+'</button>'+(f.w?'<button class="btn ghost" data-a="openw" data-v="'+esc(f.w)+'">Abrir treino</button>':'')+'<button class="btn ghost" data-a="itemchat" data-v="'+esc(f.id)+'">'+IC.chat+' Perguntar</button></div>':'<div class="big">Tudo feito por hoje</div>';
+  if(S.mode==='treino')h+='<div class="btns"><button class="btn ghost" data-a="spot">Abrir Spotify</button></div>';
+  h+='</div><div class="card"><h3>Missões</h3>'+ms.map(function(m){return '<div class="miss'+(m.ok?' ok':'')+'"><span>'+(m.ok?'Feito · ':'')+esc(m.t)+'</span><span>'+m.p+'</span></div>'}).join('')+'<div class="small" style="margin-top:6px">'+dn+' de '+total+' itens feitos · '+DN[dayIdx()]+'</div></div>';
+  h+='<div class="card"><h3>Checklist de '+DN[dayIdx()]+'</h3><div class="small" style="margin:-4px 0 6px">Toque para abrir, toque duas vezes para conversar com o Jarvis sobre o item.</div>'+it.map(function(i){return rowHtml(i,d,cn.cur)}).join('')+'</div>';
+  return h}
+function vTreino(){
+  var r=R(),keys=Object.keys(r.wk);
+  if(!keys.length)return '<div class="card">Esta rotina não tem treino. Importe uma com linhas como <code>Agachamento 4x8-12</code>.</div>';
+  var k=S.wkSel&&r.wk[S.wkSel]?S.wkSel:(todayWk()&&r.wk[todayWk()]?todayWk():keys[0]),w=r.wk[k],dk=dstr(),L=S.logs[dk]||{};
+  var h='<div id="rest" class="rest"></div><div class="card"><h3>Treino</h3><select data-a="wsel">'+keys.map(function(x){return '<option value="'+x+'"'+(x===k?' selected':'')+'>'+esc(r.wk[x].name)+(x===todayWk()?' (hoje)':'')+'</option>'}).join('')+'</select><div class="btns"><button class="btn ghost" data-a="spot">Abrir Spotify</button></div></div>';
+  w.ex.forEach(function(e,idx){
+    var key=exKey(k,e),a=L[key]||[],ll=lastLog(key),dr=draft[key]||{};
+    var kg=dr.kg!=null?dr.kg:(ll&&ll.kg||''),rp=dr.r!=null?dr.r:(ll&&ll.r||'');
+    var chips='';for(var i=0;i<e.s;i++)chips+='<button class="chip'+(a[i]?' on':'')+'" data-a="set" data-k="'+k+'" data-x="'+idx+'" data-s="'+i+'">'+(i+1)+'</button>';
+    h+='<div class="card ex"><div class="exh"><b>'+esc(e.n)+'</b><span>'+e.s+' × '+esc(e.r)+'</span></div>'+(e.s>1||/kg|peso/.test(e.n)?'<div class="inp"><label>kg <input type="number" inputmode="decimal" step="0.5" data-key="'+key+'" data-f="kg" value="'+esc(kg)+'"></label><label>reps <input type="number" inputmode="numeric" data-key="'+key+'" data-f="r" value="'+esc(rp)+'"></label></div>':'')+'<div class="sets">'+chips+'</div><div class="btns"><button class="btn ghost sm" data-a="vid" data-v="'+esc(e.n)+'">'+IC.play+' Ver execução</button></div>'+(ll?'<div class="small" style="margin-top:8px">Última vez: '+(ll.kg?ll.kg+' kg × ':'')+(ll.r||'?')+'</div>':'')+'</div>'});
+  return h}
+function vSemana(){
+  var sel=S.wsel==null?dayIdx():S.wsel,mon=new Date();mon.setDate(mon.getDate()-dayIdx());
+  var h='<div class="pills">';
+  for(var i=0;i<7;i++){var dd=new Date(mon);dd.setDate(mon.getDate()+i);h+='<button class="pill'+(sel===i?' on':'')+'" data-a="wday" data-v="'+i+'">'+DN[i].slice(0,3)+'<div class="pc">'+(dd<=new Date()?pct(i,dd)+'%':'—')+'</div></button>'}
+  h+='</div><div class="card"><h3>'+DN[sel]+(sel===dayIdx()?' (hoje)':'')+'</h3>';
+  var d=sel===dayIdx()?doneToday():{};
+  h+=items(sel).map(function(i){return rowHtml(i,d,null,sel!==dayIdx(),sel)}).join('')+'</div>';
+  return h}
+function vGuia(){
+  var h='<div class="card"><h3>Guia</h3><div class="small">Tudo dos seus chats de dieta, treino, inglês e consultoria, num lugar só. Abra uma seção e converse com o Jarvis sobre ela.</div></div>';
+  GUIA.forEach(function(g){
+    var body='';
+    guiaBlocks(g).forEach(function(b){body+='<h4>'+esc(b[0])+'</h4>'+(Array.isArray(b[1])?'<ul>'+b[1].map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':'<p>'+esc(b[1])+'</p>')});
+    h+='<div class="card gc'+(GEXP[g.id]?' open':'')+'"><div class="gh" data-a="gtog" data-v="'+g.id+'"><div><b>'+esc(g.t)+'</b><div class="small">'+esc(g.s)+'</div></div><span class="chev">'+IC.chev+'</span></div><div class="gb">'+body+'<div class="btns"><button class="btn" data-a="guiachat" data-v="'+g.id+'">'+IC.chat+' Conversar sobre '+esc(g.t.toLowerCase())+'</button></div></div></div>'});
+  return h}
+function chatHtml(k){
+  var a=chatArr(k);
+  var h=a.map(function(m,ix){
+    var s='<div class="b '+(m.r==='u'?'me':m.r==='s'?'sys':'ja')+'">'+esc(m.t)+'</div>';
+    if(m.rt)s+='<div><button class="btn sm" data-a="rt" data-k="'+esc(k)+'" data-i="'+ix+'">Ativar rotina "'+esc(m.rt.name)+'"</button></div>';
+    return s}).join('');
+  if(busy[k])h+='<div class="typing">Jarvis está pensando…</div>';
+  if(!a.length&&!busy[k])h='<div class="b sys">Pergunte ou peça qualquer coisa.</div>';
+  return h}
+function updChat(){
+  var f=$('#ch-free');if(f){f.innerHTML=chatHtml('free');f.scrollTop=f.scrollHeight}
+  if(SHEET){var s=$('#sheetChat');if(s){s.innerHTML=chatHtml(SHEET.k);s.scrollTop=s.scrollHeight}}}
+function vJarvis(){
+  var h='<div class="card"><h3>Jarvis</h3><button class="mic'+(S.voice?' on':'')+'" data-a="voice">'+IC.mic+(S.voice?'Ouvindo "Jarvis" (toque para parar)':'Ativar escuta por voz')+'</button>';
+  h+='<div class="small" style="margin-top:8px">Este aparelho: <b>'+device()+'</b> · Ouvido: <b>'+S.ear+'</b>'+(listensHere()?'':' (este aparelho não escuta)')+' · IA: <b class="'+(aiReady()?'ok':'no')+'">'+(aiReady()?'ligada':'sem chave')+'</b></div>';
+  h+='<div class="btns">'+['ambos','pc','celular'].map(function(e){return '<button class="btn'+(S.ear===e?'':' ghost')+'" data-a="ear" data-v="'+e+'">'+(e==='ambos'?'Nos dois':'Só '+(e==='pc'?'PC':'celular'))+'</button>'}).join('')+'</div></div>';
+  h+='<div class="card"><h3>Conversa</h3><div class="chat" id="ch-free">'+chatHtml('free')+'</div><div class="chips">'+['O que eu faço agora?','Abre o Spotify','Estou sem pão e ovo, o que como?','Adia o próximo item','Amanhã tenho prova às 8h','Monta uma rotina de férias'].map(function(c){return '<button data-a="chip" data-k="free" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')+'</div><form class="cmd" data-a="chatform" data-k="free"><input id="cmd" placeholder="Fale ou escreva qualquer coisa" autocomplete="off"><button class="btn" type="submit">Enviar</button></form><div class="btns"><button class="btn ghost sm" data-a="chatclear">Limpar conversa</button></div></div>';
+  h+='<div class="card"><h3>Modos</h3><ul class="l"><li><b>Normal</b>: todos os avisos e o Jarvis fala.</li><li><b>Silencioso</b>: o Jarvis não fala nem faz som, mas continua obedecendo comandos.</li><li><b>Estudo</b>: só avisos de estudo e inglês.</li><li><b>Treino</b>: só avisos de treino, e no celular abre o Spotify na hora do treino.</li></ul></div>';
+  h+='<div class="card"><h3>Exemplos</h3><ul class="l"><li>"Jarvis, abre o GitHub" / "abre o Spotify" / "abre o WhatsApp"</li><li>"Jarvis, pesquisa Douglas Sola no YouTube"</li><li>"Jarvis, toca Linkin Park no Spotify"</li><li>"Jarvis, abre o YouTube no PC"</li><li>"Jarvis, o que eu faço agora?" / "qual Anki hoje?"</li><li>"Jarvis, estou sem pão, o que como no café?"</li><li>"Jarvis, bebi um copo de água"</li><li>"Jarvis, amanhã tenho prova às 8h"</li><li>"Jarvis, monta minha rotina de férias"</li></ul><div class="small">Diga só "Jarvis" e espere o "Pois não?" se preferir. Sem a chave da IA ele entende só comandos simples.</div></div>';
+  return h}
+function diagHtml(){
+  var d={};try{d=JSON.parse(NATIVE.diag())}catch(e){}
+  function row(ok,t,btn){return '<div class="dg"><span class="'+(ok?'ok':'no')+'">'+(ok?'OK':'Falta')+'</span><span style="flex:1;margin-left:10px">'+t+'</span>'+(!ok&&btn?'<button class="btn sm" data-a="'+btn+'">Resolver</button>':'')+'</div>'}
+  var h='<div class="card"><h3>Diagnóstico do celular</h3>'+
+   row(d.mic,'Microfone','nperm')+row(d.notif,'Notificações','nperm')+row(d.overlay,'Aparecer sobre outros apps (abrir apps com o app fechado)','nover')+row(d.exact,'Alarmes exatos (avisos na hora certa)','nexact')+row(d.battery,'Bateria sem restrição','nbat')+row(d.recognizer,'Reconhecimento de voz do Google','')+row(d.service,'Escuta em segundo plano ligada','nlisten')+
+   '<div class="small" style="margin-top:8px">Última frase ouvida: <b>'+esc(d.lastHeard||'nenhuma ainda')+'</b></div>'+(d.lastErr?'<div class="small">Último erro: <b>'+esc(d.lastErr)+'</b></div>':'')+
+   '<div class="btns"><button class="btn ghost" data-a="nsettings">Abrir configurações do app</button><button class="btn ghost" data-a="ntts">Voz do Android</button></div>'+
+   '<ul class="l"><li>Samsung: Configurações, Aplicativos, Jarvis, Bateria, escolha "Sem restrições".</li><li>Configurações, Bateria, Limites de uso em segundo plano: tire o Jarvis de "Apps em suspensão" e "Apps em suspensão profunda".</li><li>Na tela de apps recentes, toque no ícone do Jarvis e escolha "Manter aberto".</li><li>Depois de reiniciar o celular, abra o Jarvis uma vez para religar a escuta.</li></ul></div>';
+  return h}
+function voicesList(){
+  var l=[];
+  if(NATIVE){try{l=JSON.parse(NATIVE.voices())}catch(e){}}
+  else if(window.speechSynthesis){l=speechSynthesis.getVoices().filter(function(v){return /^pt/i.test(v.lang)}).map(function(v){return v.name})}
+  return l}
+function vAjustes(){
+  var perm=('Notification' in window)?Notification.permission:'indisponível';
+  var h='<div class="card"><h3>Cérebro (IA)</h3><div class="small">Status: <b class="'+(aiReady()?(S.ai.ok===false?'no':'ok'):'no')+'">'+(aiReady()?(S.ai.ok===false?'problema: '+esc(S.ai.err||''):S.ai.ok?'funcionando':aiKeys().length+' chave(s) salva(s): '+aiKeys().map(function(k){return provOf(k).n}).join(', ')):'sem chave')+'</b></div>'+
+   '<textarea id="aikey" rows="3" autocomplete="off" spellcheck="false" placeholder="Cole aqui suas chaves, uma por linha (Gemini, Groq, OpenRouter, Cerebras, OpenAI)" style="width:100%;margin:8px 0;min-height:76px">'+esc(S.ai.key)+'</textarea><div class="btns"><button class="btn" data-a="aisave">Salvar chaves</button><button class="btn ghost" data-a="aitest">Testar IA</button></div><div class="small" style="margin-top:8px">Pegar chave grátis:</div><div class="btns"><button class="btn ghost sm" data-a="aigroq">Groq</button><button class="btn ghost sm" data-a="aiget">Gemini</button><button class="btn ghost sm" data-a="aior">OpenRouter</button><button class="btn ghost sm" data-a="aice">Cerebras</button></div>'+
+   '<ul class="l"><li>Pode colar várias chaves, uma por linha. O Jarvis tenta na ordem e, se uma falhar ou estourar o limite, passa para a próxima sozinho.</li><li>Ele reconhece o tipo pelo começo da chave: AIza (Gemini), gsk_ (Groq), sk-or- (OpenRouter), csk- (Cerebras), sk- (OpenAI).</li><li>Sugestão: Groq e Gemini juntas, as duas grátis.</li><li>No PC, com uma chave Groq salva, o Jarvis usa o Whisper da Groq para entender sua voz (bem melhor que o reconhecimento do Windows). Só o áudio em que você fala é enviado.</li><li>Faça isso em cada aparelho (celular e PC). Com a chave, o Jarvis entende qualquer frase e responde qualquer coisa. Tem limite diário grátis.</li></ul></div>';
+  var vs=voicesList();
+  h+='<div class="card"><h3>Voz do Jarvis</h3><div class="small">Velocidade: <b>'+(+S.tts.rate).toFixed(2)+'x</b></div><input type="range" min="0.8" max="2" step="0.05" value="'+S.tts.rate+'" data-a="tts" data-f="rate"><div class="small">Tom: <b>'+(+S.tts.pitch).toFixed(2)+'</b></div><input type="range" min="0.7" max="1.4" step="0.05" value="'+S.tts.pitch+'" data-a="tts" data-f="pitch">'+(DESK&&S.tts.engine!=='system'&&!(S.tts.elKey&&S.tts.elKey.length>10)?'<div class="small">Na voz online o tom não muda. Para mudar o tom, escolha Voz do Windows mais abaixo.</div>':'')+
+   (vs.length?'<div class="small" style="margin-top:8px">Voz</div><select data-a="tts" data-f="name"><option value="">Automática (melhor disponível)</option>'+vs.map(function(v){return '<option value="'+esc(v)+'"'+(S.tts.name===v?' selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select>':'')+
+   (DESK?'<div class="small" style="margin-top:8px">Motor de voz</div><select data-a="tts" data-f="engine"><option value="auto"'+(S.tts.engine!=='system'?' selected':'')+'>Online (mais natural, precisa de internet)</option><option value="system"'+(S.tts.engine==='system'?' selected':'')+'>Voz do Windows</option></select>':'')+
+   '<div class="sw"><span>Falar respostas digitadas</span><button class="tg'+(S.speakTyped?' on':'')+'" data-a="spkt" aria-label="falar respostas"></button></div><div class="btns"><button class="btn" data-a="vtest">Testar voz</button>'+(NATIVE?'<button class="btn ghost" data-a="ntts">Voz do Android</button>':'')+'</div></div>';
+  h+='<div class="card"><h3>Voz realista (ElevenLabs, opcional)</h3><div class="small">Grátis com limite de uns 10 mil caracteres por mês. Se acabar ou falhar, o Jarvis volta sozinho para a voz normal.</div><input id="elkey" type="password" autocomplete="off" placeholder="Chave da ElevenLabs" value="'+esc(S.tts.elKey||'')+'" style="width:100%;margin:8px 0"><input id="elvoice" placeholder="ID da voz (vazio = voz padrão)" value="'+esc(S.tts.elVoice||'')+'" style="width:100%"><div class="btns"><button class="btn" data-a="elsave">Salvar</button><button class="btn ghost" data-a="vtest">Testar voz</button></div></div>';
+  h+='<div class="card"><h3>Água</h3><div class="sw"><span>Lembretes de água</span><button class="tg'+(S.wat.on?' on':'')+'" data-a="wton" aria-label="lembretes de água"></button></div><div class="inp"><label>Meta (copos de 250 ml) <input type="number" min="4" max="30" value="'+S.wat.goal+'" data-a="watcfg" data-f="goal"></label><label>Garrafa (ml) <input type="number" min="100" max="2000" step="50" value="'+(S.wat.bottle||500)+'" data-a="watcfg" data-f="bottle"></label><label>A cada (min) <input type="number" min="15" max="360" step="5" value="'+S.wat.every+'" data-a="watcfg" data-f="every"></label></div><div class="small">Lembretes das 07:00 às 21:00, só enquanto a meta não foi batida.</div></div>';
+  h+=(NATIVE?diagHtml():'');
+  h+='<div class="card"><h3>Avisos</h3>'+
+  '<div class="sw"><span>Notificações dos itens principais</span><button class="tg'+(S.notif?' on':'')+'" data-a="ntf" aria-label="notificações"></button></div>'+
+  '<div class="sw"><span>Sons</span><button class="tg'+(S.sound?' on':'')+'" data-a="snd" aria-label="sons"></button></div>'+
+  '<div class="small">Permissão do navegador: <b>'+perm+'</b></div><div class="btns"><button class="btn" data-a="perm">Permitir notificações</button><button class="btn ghost" data-a="test">Testar aviso</button></div>'+
+  '<div class="small" style="margin-top:8px">Silencioso: sem som. Estudo: só estudo e inglês. Treino: só treino. Só os itens principais avisam.</div></div>';
+  h+='<div class="card"><h3>Rotinas</h3>'+routines().map(function(r){return '<div class="sw"><span>'+esc(r.name)+(r.id===S.cur?' <span class="tag">ativa</span>':'')+'</span><span>'+(r.id!==S.cur?'<button class="btn ghost sm" data-a="use" data-v="'+r.id+'">Usar</button> ':'')+(r.id!=='padrao'?'<button class="btn red sm" data-a="del" data-v="'+r.id+'">Excluir</button>':'')+'</span></div>'}).join('')+'</div>';
+  h+='<div class="card"><h3>Importar rotina</h3><div class="small">Dica: é mais fácil pedir ao Jarvis na aba Jarvis ("monta uma rotina de férias"). Ou cole aqui.</div><input id="impname" placeholder="Nome (ex.: Férias)" style="width:100%;margin:8px 0"><textarea id="imp" placeholder="Segunda&#10;07:00 Acordar&#10;08:00 Treino&#10;Flexão 4x10-15&#10;Barra fixa 4x8&#10;&#10;Terça&#10;..."></textarea><div class="btns"><button class="btn" data-a="import">Importar texto</button><label class="btn ghost">Abrir arquivo<input type="file" id="file" accept=".txt,.md,.json" hidden></label></div><ul class="l"><li>Títulos de dia: Segunda, Terça… (ou "Todos os dias")</li><li>Itens: <code>06:30 Título — detalhe</code></li><li>Exercícios: <code>Nome 4x8-12</code> viram a aba Treino do dia</li><li>Também aceita o JSON exportado por este app e o backup completo</li></ul></div>';
+  h+=vLink();
+  h+='<div class="card"><h3>Dados</h3><div class="btns"><button class="btn ghost" data-a="export">Exportar rotina ativa (JSON)</button><button class="btn ghost" data-a="backup">Exportar backup completo</button>'+(window._inst?'<button class="btn" data-a="install">Instalar app</button>':'')+'</div><div class="small" style="margin-top:8px">Para restaurar um backup, cole o conteúdo do arquivo em "Importar rotina" e toque em Importar texto.</div></div>';
+  h+='<div class="card"><h3>Como funciona</h3><ul class="l"><li>Celular (app instalado): escuta "Jarvis" em segundo plano, mesmo com o app fechado, e avisa nos horários.</li><li>PC (app instalado): fica na bandeja do Windows, abre com o computador e escuta com a janela fechada.</li><li>Depois de reiniciar o celular, abra o Jarvis uma vez para religar a escuta.</li><li>PC e celular se falam pelo código de ligação.</li></ul></div>';
+  return h}
+var VIEWS={hoje:vHoje,treino:vTreino,semana:vSemana,guia:vGuia,jarvis:vJarvis,ajustes:vAjustes};
+function render(){
+  try{head();$('#view').innerHTML=(VIEWS[S.tab]||vHoje)();if(S.tab==='treino')tickRest();if(S.tab==='jarvis')updChat()}
+  catch(e){$('#view').innerHTML='<div class="card">Erro ao desenhar: '+esc(e.message)+'</div>'}}
+
+/* ========= conversa em folha (toque duplo no item, Guia) ========= */
+function renderSheet(){
+  if(!SHEET)return;
+  $('#sbox').innerHTML='<div class="sh"><div><b>'+esc(SHEET.title)+'</b><span class="small">'+esc(SHEET.sub||'')+'</span></div><button class="btn ghost sm" data-a="sheetclose">Fechar</button></div><div class="chat" id="sheetChat">'+chatHtml(SHEET.k)+'</div><div class="chips">'+(SHEET.chips||[]).map(function(c){return '<button data-a="chip" data-k="'+esc(SHEET.k)+'" data-v="'+esc(c)+'">'+esc(c)+'</button>'}).join('')+'</div><form class="cmd" data-a="chatform" data-k="'+esc(SHEET.k)+'"><input id="sheetIn" placeholder="Pergunte ou peça algo" autocomplete="off"><button class="btn" type="submit">Enviar</button></form>';
+  var s=$('#sheetChat');if(s)s.scrollTop=s.scrollHeight}
+function openChat(o){SHEET=o;$('#sheet').className='on';renderSheet();setTimeout(function(){var i=$('#sheetIn');if(i&&!NATIVE)i.focus()},120)}
+function closeSheet(){SHEET=null;var s=$('#sheet');if(s)s.className=''}
+function openItemChat(id){
+  var f=findItem(id);if(!f)return;var i=f.i,more=moreFor(i,f.di);
+  var chips=i.c==='food'?['Quais as opções?','Estou sem um ingrediente','Troca por outra opção']:i.c==='en'?['O que faço nisso hoje?','Explica melhor','Adia 30 minutos']:['Explica melhor','Adia 30 minutos','Pula hoje'];
+  openChat({k:'item:'+id,title:i.title,sub:DN[f.di]+' · '+i.t,chips:chips,ctx:'O usuário tocou duas vezes no item da rotina "'+i.title+'" ('+DN[f.di]+' às '+i.t+', id='+i.id+'). Detalhe: '+(i.d||'nenhum')+'. Detalhes completos: '+(more||'nenhum')+'. Responda sobre este item (ex.: qual Anki hoje, falta ingrediente: sugira a opção B ou troca equivalente do guia).'})}
+function openGuiaChat(id){
+  var g=GUIA.find(function(x){return x.id===id});if(!g)return;
+  openChat({k:'guia:'+id,title:g.t,sub:'Guia',chips:['Resume para mim','O que faço hoje disso?','Tenho uma dúvida'],ctx:'O usuário está lendo a seção "'+g.t+'" do Guia e quer conversar sobre ela.'})}
+
+/* ========= eventos ========= */
+function download(name,obj){try{var b=new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href)},500)}catch(e){toast('Não consegui exportar')}}
+var tapT=0,tapId=null,tapTm=null;
+function rowTap(id){
+  var now=Date.now();
+  if(tapId===id&&now-tapT<340){clearTimeout(tapTm);tapId=null;openItemChat(id);return}
+  tapId=id;tapT=now;clearTimeout(tapTm);
+  tapTm=setTimeout(function(){tapId=null;EXP[id]=!EXP[id];
+    var els=document.querySelectorAll('[data-a="row"]');for(var q=0;q<els.length;q++)if(els[q].dataset.v===id)els[q].classList.toggle('open',!!EXP[id])},350)}
+document.addEventListener('click',function(ev){
+  var el=ev.target.closest('[data-a]');if(!el||el.tagName==='FORM'||el.tagName==='SELECT'||el.tagName==='INPUT'&&el.type==='range')return;
+  var a=el.dataset.a,v=el.dataset.v;
+  if(a==='row'){if(ev.target.closest('.xp'))return;rowTap(v);return}
+  if(a==='tab'){S.tab=v;save();render();window.scrollTo(0,0)}
+  else if(a==='mode')setMode(v);
+  else if(a==='tog')toggle(v);
+  else if(a==='sub'){S.sub[v]=el.dataset.s;save();render()}
+  else if(a==='snooze'){if(snoozeItem(v,30))toast('Adiado 30 minutos')}
+  else if(a==='skipit'){if(skipItem(v))toast('Item pulado hoje')}
+  else if(a==='itemchat')openItemChat(v);
+  else if(a==='guiachat')openGuiaChat(v);
+  else if(a==='gtog'){GEXP[v]=!GEXP[v];var gc=el.closest('.gc');if(gc)gc.classList.toggle('open',!!GEXP[v])}
+  else if(a==='sheetclose')closeSheet();
+  else if(a==='chip'){var kk=el.dataset.k;handleText(v,{k:kk,ctx:SHEET&&SHEET.k===kk?SHEET.ctx:''})}
+  else if(a==='rt'){var m=chatArr(el.dataset.k)[+el.dataset.i];if(m&&m.rt){if(importText(m.rt.text,m.rt.name)){m.rt=null;persist();updChat()}}}
+  else if(a==='chatclear'){S.chatFree=[];persist();updChat()}
+  else if(a==='wat')addWater(v==='bottle'?Math.max(1,Math.round((S.wat.bottle||500)/250)):+v);
+  else if(a==='spot')openSpotify('');
+  else if(a==='openw'){closeSheet();S.wkSel=v;S.tab='treino';save();render();window.scrollTo(0,0)}
+  else if(a==='set')setToggle(el.dataset.k,+el.dataset.x,+el.dataset.s);
+  else if(a==='skip'){rest.end=0;tickRest()}
+  else if(a==='wday'){S.wsel=+v;render()}
+  else if(a==='voice'){if(S.voice)stopVoice();else startVoice()}
+  else if(a==='ear'){applyEar(v);toast('Ouvido: '+v)}
+  else if(a==='ntf'){S.notif=!S.notif;save();render()}
+  else if(a==='snd'){S.sound=!S.sound;save();render()}
+  else if(a==='spkt'){S.speakTyped=!S.speakTyped;persist();render()}
+  else if(a==='wton'){S.wat.on=!S.wat.on;save();render()}
+  else if(a==='aisave'){S.ai.key=($('#aikey').value||'').split(/[\s,;]+/).filter(function(k){return k}).join('\n');S.ai.model=S.ai.model||'gemini-flash-latest';S.ai.ok=undefined;S.ai.err='';persist();if(NATIVE){try{NATIVE.setAi(S.ai.key,S.ai.model)}catch(e){}}toast(S.ai.key?'Chaves salvas':'Chaves removidas');render()}
+  else if(a==='aitest')testAI();
+  else if(a==='aiget')openUrl('https://aistudio.google.com/apikey');
+  else if(a==='aigroq')openUrl('https://console.groq.com/keys');
+  else if(a==='aior')openUrl('https://openrouter.ai/keys');
+  else if(a==='aice')openUrl('https://cloud.cerebras.ai');
+  else if(a==='elsave'){S.tts.elKey=($('#elkey').value||'').trim();S.tts.elVoice=($('#elvoice').value||'').trim();save();if(NATIVE){try{NATIVE.setEleven(S.tts.elKey,S.tts.elVoice)}catch(e){}}toast(S.tts.elKey?'ElevenLabs salvo':'ElevenLabs removido');render()}
+  else if(a==='vtest')speak('Olá, eu sou o Jarvis. Esta é a minha voz, ajuste a velocidade como preferir.',true);
+  else if(a==='perm'){if(NATIVE){NATIVE.askPerms();return}if(!('Notification' in window)){toast('Este navegador não tem notificações');return}Notification.requestPermission().then(function(p){toast('Permissão: '+p);render()})}
+  else if(a==='test'){if(NATIVE){NATIVE.notifyTest();return}var n=S.notif;S.notif=true;notify('Teste do Jarvis','Se você viu isso, os avisos funcionam',true);S.notif=n}
+  else if(a==='use'){S.cur=v;save();render()}
+  else if(a==='del'){S.rs=S.rs.filter(function(r){return r.id!==v});if(S.cur===v)S.cur='padrao';save();render()}
+  else if(a==='import')doImport();
+  else if(a==='vid'){openUrl('https://www.youtube.com/results?search_query='+encodeURIComponent(v+' execução correta'))}
+  else if(a==='pairsave'){var pv=($('#pair').value||'').trim().toLowerCase().replace(/[^a-z0-9-]/g,'');if(pv.length<6){toast('Código curto demais (mín. 6)');return}S.pair='jv-'+pv;save();if(NATIVE){try{NATIVE.setPair(S.pair)}catch(e){}}else subStart();render();toast('Ligação salva')}
+  else if(a==='pairgen'){$('#pair').value='jarvis-'+Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,6)}
+  else if(a==='nperm'&&NATIVE){NATIVE.askPerms();setTimeout(render,1500)}
+  else if(a==='nover'&&NATIVE)NATIVE.askOverlay();
+  else if(a==='nexact'&&NATIVE)NATIVE.askExact();
+  else if(a==='nbat'&&NATIVE)NATIVE.askBattery();
+  else if(a==='nlisten'&&NATIVE){startVoice();setTimeout(render,1200)}
+  else if(a==='nsettings'&&NATIVE)NATIVE.openAppSettings();
+  else if(a==='ntts'&&NATIVE)NATIVE.openTtsSettings();
+  else if(a==='export'){var r=R();download('rotina-'+slug(r.name)+'.json',{name:r.name,days:r.days,wk:r.wk})}
+  else if(a==='backup'){var cp=JSON.parse(JSON.stringify(S));cp.ai.key='';download('jarvis-backup.json',cp)}
+  else if(a==='install'&&window._inst){window._inst.prompt();window._inst=null}
+});
+document.addEventListener('change',function(ev){
+  var el=ev.target,a=el.dataset&&el.dataset.a;
+  if(a==='wsel'){S.wkSel=el.value;save();render()}
+  else if(a==='tts'){var f=el.dataset.f;S.tts[f]=(f==='rate'||f==='pitch')?+el.value:el.value;save();
+    if(NATIVE){try{NATIVE.setVoice(+S.tts.rate,+S.tts.pitch,S.tts.name||'')}catch(e){}}render()}
+  else if(a==='watcfg'){var n=Math.round(+el.value)||0;if(el.dataset.f==='goal')S.wat.goal=Math.min(30,Math.max(4,n||16));else if(el.dataset.f==='bottle')S.wat.bottle=Math.min(2000,Math.max(100,n||500));else S.wat.every=Math.min(360,Math.max(15,n||90));save();render()}
+  else if(el.id==='file'&&el.files[0]){var fr=new FileReader();fr.onload=function(){$('#imp').value=fr.result;toast('Arquivo carregado: toque em Importar texto')};fr.readAsText(el.files[0])}
+});
+document.addEventListener('input',function(ev){var el=ev.target;if(el.dataset&&el.dataset.key){var d=draft[el.dataset.key]=draft[el.dataset.key]||{};d[el.dataset.f]=el.value}});
+document.addEventListener('submit',function(ev){
+  var f=ev.target;if(f.dataset&&f.dataset.a==='chatform'){ev.preventDefault();var i=f.querySelector('input'),t=i.value.trim();if(!t)return;i.value='';
+    var k=f.dataset.k,m=norm(t).match(/^\s*jarvis\b[, ]*(.*)$/),txt=m&&m[1]?t.slice(t.length-m[1].length):t;
+    handleText(txt,{k:k,ctx:SHEET&&SHEET.k===k?SHEET.ctx:''})}});
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window._inst=e;if(S.tab==='ajustes')render()});
+
+/* ========= ligação PC <-> celular ========= */
+function vLink(){
+  var h='<div class="card"><h3>Ligação PC e celular</h3><div class="small">Use o mesmo código nos dois aparelhos (só você deve saber).</div><input id="pair" placeholder="código, ex.: jarvis-9f3k2a" value="'+esc((S.pair||'').replace(/^jv-/,''))+'" style="width:100%;margin:8px 0"><div class="btns"><button class="btn" data-a="pairsave">Salvar código</button><button class="btn ghost" data-a="pairgen">Gerar código</button></div><div class="small" style="margin-top:6px">'+(S.pair?'Ligado':'Sem ligação')+'</div></div>';
+  return h}
+function pubRaw(o){
+  if(!S.pair)return;o.from=device();var m=JSON.stringify(o);
+  if(NATIVE){try{NATIVE.publish(m)}catch(e){}return}
+  try{fetch('https://ntfy.sh/'+S.pair,{method:'POST',body:m}).catch(function(){})}catch(e){}}
+var es=null;
+function subStart(){
+  if(NATIVE||!S.pair)return;
+  try{if(es)es.close();es=new EventSource('https://ntfy.sh/'+S.pair+'/sse');
+    es.onmessage=function(e){try{var d=JSON.parse(e.data);if(d.event==='message')remote(JSON.parse(d.message))}catch(x){}}}catch(e){}}
+function applyEvent(o){
+  if(!o||!o.type)return;
+  if(o.type==='ear')S.ear=o.v;
+  else if(o.type==='mode')S.mode=o.v;
+  else if(o.type==='voice')S.voice=!!o.v;
+  else if(o.type==='done'){var dd=S.done[o.date]=S.done[o.date]||{};if(o.xp)dd[o.id]=o.xp;else delete dd[o.id]}
+  else if(o.type==='water'){S.water[o.date]=o.n}
+  else if(o.type==='move'){ovGet(o.date,true).move[o.id]=o.t}
+  else return;
+  try{localStorage.setItem('jarvis_v1',JSON.stringify(S))}catch(e){}
+  render()}
+function remote(o){
+  if(!o||o.from===device())return;
+  if(o.type==='cmd'){if(o.to===device()||o.to==='all')handleText(o.text,{k:'free',voice:true});return}
+  if(o.type==='actions'){if(o.to===device()||o.to==='all')doActions(o.actions);return}
+  applyEvent(o);
+  if(o.type==='ear'&&!NATIVE&&S.voice){if(listensHere())startVoice();else stopVoice(true)}}
+function pullNative(){if(!NATIVE)return;var a=[];try{a=JSON.parse(NATIVE.pull()||'[]')}catch(e){}a.forEach(applyEvent)}
+window.pullNative=pullNative;
+window.goTab=function(t){S.tab=t;save();render()};
+
+/* ========= início ========= */
+var errT=0;window.addEventListener('error',function(e){var n=Date.now();if(e&&e.message&&n-errT>6000){errT=n;try{toast('Erro: '+e.message)}catch(x){}}});
+if(NATIVE){try{var st=JSON.parse(NATIVE.getState());S.voice=!!st.voice;if(st.mode)S.mode=st.mode;if(st.ear)S.ear=st.ear;if(st.pair)S.pair=st.pair;else if(S.pair)NATIVE.setPair(S.pair);
+    if(st.waterDate&&st.waterN>(S.water[st.waterDate]||0))S.water[st.waterDate]=st.waterN;
+    NATIVE.setWater(dstr(),waterN());
+    NATIVE.setAi(S.ai.key||'',S.ai.model||'');NATIVE.setEleven(S.tts.elKey||'',S.tts.elVoice||'');NATIVE.setKb(kbText());NATIVE.setVoice(+S.tts.rate,+S.tts.pitch,S.tts.name||'')}catch(e){}
+  setInterval(pullNative,2500)}
+else subStart();
+if(DESK){DESK.onHeard(function(t){heard(t)});DESK.onStatus(function(t){toast(t)})}
+render();syncNative();
+setInterval(tick,15000);tick();
+setInterval(function(){tickRest();var a=document.activeElement;if(S.tab==='hoje'&&(!a||a===document.body)&&!SHEET)render();else head()},30000);
+setInterval(tickRest,500);
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}}
+if(!NATIVE&&S.voice&&listensHere()){setTimeout(function(){try{startVoice()}catch(e){}},600)}
+
+</script>
+</body>
+</html>
